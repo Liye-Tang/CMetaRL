@@ -574,3 +574,7 @@ def plot_belief(env, beliefs, args):
                             edgecolor='k')
             plt.gca().add_patch(rec)
             count += 1
+
+
+if __name__ == '__main__':
+    a = GridNavi()
