@@ -8,7 +8,7 @@ def get_args(rest_args):
     # --- GENERAL ---
 
     parser.add_argument('--num_frames', type=int, default=2e7, help='number of frames to train')
-    parser.add_argument('--max_rollouts_per_task', type=int, default=4, help='number of MDP episodes for adaptation')
+    parser.add_argument('--max_rollouts_per_task', type=int, default=2, help='number of MDP episodes for adaptation')
     parser.add_argument('--exp_label', default='varibad', help='label (typically name of method)')
     parser.add_argument('--env_name', default='MultiGoalEnv-v0', help='environment to train on')
 
@@ -86,9 +86,9 @@ def get_args(rest_args):
                         help='how many trajectories to use for VAE update')
     parser.add_argument('--tbptt_stepsize', type=int, default=None,
                         help='stepsize for truncated backpropagation through time; None uses max (horizon of BAMDP)')
-    parser.add_argument('--vae_subsample_elbos', type=int, default=None,
+    parser.add_argument('--vae_subsample_elbos', type=int, default=50,
                         help='for how many timesteps to compute the ELBO; None uses all')
-    parser.add_argument('--vae_subsample_decodes', type=int, default=None,
+    parser.add_argument('--vae_subsample_decodes', type=int, default=50,
                         help='number of reconstruction terms to subsample; None uses all')
     parser.add_argument('--vae_avg_elbo_terms', type=boolean_argument, default=False,
                         help='Average ELBO terms (instead of sum)')
@@ -128,7 +128,7 @@ def get_args(rest_args):
                              'deterministic (treat as regression problem)')
 
     # - decoder: state transitions
-    parser.add_argument('--decode_state', type=boolean_argument, default=False, help='use state decoder')
+    parser.add_argument('--decode_state', type=boolean_argument, default=True, help='use state decoder')
     parser.add_argument('--state_loss_coeff', type=float, default=1.0, help='weight for state loss')
     parser.add_argument('--state_decoder_layers', nargs='+', type=int, default=[32, 32])
     parser.add_argument('--state_pred_type', type=str, default='deterministic', help='choose: deterministic, gaussian')

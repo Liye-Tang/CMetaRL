@@ -45,7 +45,7 @@ class MetaLearner:
 
         if self.args.single_task_mode:
             # get the current tasks (which will be num_process many different tasks)
-            self.train_tasks = self.envs.get_task()
+            self.train_tasks = self.envs.get_task()  # the task is the goal pos or the parameter of the agent
             # set the tasks to the first task (i.e. just a random task)
             self.train_tasks[1:] = self.train_tasks[0]
             # make it a list
@@ -229,11 +229,12 @@ class MetaLearner:
                                                     done.clone(),
                                                     task.clone() if task is not None else None)
 
-                # add the obs before reset to the policy storage
+                # add the obs before reset to the policy storage  TODO: the difference between polcy storage and policy buffer
                 self.policy_storage.next_state[step] = next_state.clone()
 
-                # reset environments that are done
+                # reset environments that are done (this reset will not reset the task and only reset the state)
                 done_indices = np.argwhere(done.cpu().flatten()).flatten()
+                # part of the next states are reset and some are not
                 if len(done_indices) > 0:
                     next_state, belief, task = utl.reset_env(self.envs, self.args,
                                                              indices=done_indices, state=next_state)
