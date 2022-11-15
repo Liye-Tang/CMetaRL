@@ -34,6 +34,7 @@ class MultiGoalEnv(gym.Env):
         self.closest_point = None
         self.future_n_point = None
         self.area_index = None
+        self.obs_scale = [1/10, 1/10, 1/5, 1/10, 1/10, 1/180] + [1/10] * 20 + [1/10] * 20 + [1/180] * 20
         self.task_dim = 3
 
         self.start_point = start_point
@@ -65,14 +66,13 @@ class MultiGoalEnv(gym.Env):
         self.update_obs()
         # info.update({'future_n_point': self.future_n_point, 'closest_point': self.closest_point})
         self.done_type, self.done = self.judge_done()
-        return self.obs, reward, self.done, info
+        return self.obs * self.obs_scale, reward, self.done, info
 
     def reset(self):
         # self.generate_goal_point()
-
         self.generate_ego_state()
         self.update_obs()
-        return self.obs
+        return self.obs * self.obs_scale
 
     def reset_task(self, task=None):
         if task is None:

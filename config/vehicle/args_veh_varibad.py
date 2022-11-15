@@ -119,7 +119,7 @@ def get_args(rest_args):
     parser.add_argument('--input_prev_state', type=boolean_argument, default=False, help='use prev state for rew pred')
     parser.add_argument('--input_action', type=boolean_argument, default=False, help='use prev action for rew pred')
     parser.add_argument('--reward_decoder_layers', nargs='+', type=int, default=[32, 32])
-    parser.add_argument('--multihead_for_reward', type=boolean_argument, default=True,
+    parser.add_argument('--multihead_for_reward', type=boolean_argument, default=False,
                         help='one head per reward pred (i.e. per state)')
     parser.add_argument('--rew_pred_type', type=str, default='bernoulli',
                         help='choose: '
@@ -174,7 +174,7 @@ def get_args(rest_args):
     # --- OTHERS ---
 
     # logging, saving, evaluation
-    parser.add_argument('--log_interval', type=int, default=500, help='log interval, one log per n updates')
+    parser.add_argument('--log_interval', type=int, default=25, help='log interval, one log per n updates')
     parser.add_argument('--save_interval', type=int, default=1000, help='save interval, one save per n updates')
     parser.add_argument('--save_intermediate_models', type=boolean_argument, default=False, help='save all models')
     parser.add_argument('--eval_interval', type=int, default=500, help='eval interval, one eval per n updates')
