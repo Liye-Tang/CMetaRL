@@ -9,6 +9,8 @@ import argparse
 from environments.parallel_envs import make_vec_envs, make_env
 from utils import helpers as utl
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 def test_policy(load_path, iter):
     with open(os.path.join(load_path, "config.json"),'r', encoding='UTF-8') as f:
@@ -32,6 +34,8 @@ def test_policy(load_path, iter):
 
     # reset environment
     state = test_env.reset()
+    state = torch.from_numpy(state).float().to(device).unsqueeze(0)
+    # state = np.concatenate([state, [0.0]], axis=0)
 
     if encoder is not None:
         # reset latent state to prior
@@ -53,7 +57,11 @@ def test_policy(load_path, iter):
                                             deterministic=True)
 
         # observe reward and next obs
-        state, rew_raw, done, info = test_env.step(action[0])
+        state, rew_raw, done, info = test_env.step(action.cpu().numpy()[0])
+        state = torch.from_numpy(state).float().to(device).unsqueeze(0)
+        rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device)
+        # done = torch.from_numpy(done).float().to(device)
+        # state = np.concatenate([state, 0.0])
         test_env.render()
 
         if encoder is not None:
@@ -64,14 +72,16 @@ def test_policy(load_path, iter):
                                                                                             reward=rew_raw,
                                                                                             done=None,
                                                                                             hidden_state=hidden_state)
+        latent_sample, latent_mean, latent_logvar, hidden_state = latent_sample.unsqueeze(0), latent_mean.unsqueeze(0), latent_logvar.unsqueeze(0), hidden_state.unsqueeze(0)
 
         if done:
+            print('this is an end')
             break
         
 
 def main():
-    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_73__15:11_18:03:49"
-    iter = ""
+    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__21:12_16:40:59"
+    iter = 8999
     test_policy(load_path, iter)
 
 
