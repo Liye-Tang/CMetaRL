@@ -47,7 +47,8 @@ def evaluate(args,
                          tasks=tasks,
                          add_done_info=args.max_rollouts_per_task > 1,
                          )
-    num_steps = envs._max_episode_steps
+    # num_steps = envs._max_episode_steps
+    num_steps = 50
 
     # reset environments
     state, belief, task = utl.reset_env(envs, args)
@@ -62,6 +63,8 @@ def evaluate(args,
         latent_sample = latent_mean = latent_logvar = hidden_state = None
 
     for episode_idx in range(num_episodes):
+        
+        total_devi_p = 0
 
         for step_idx in range(num_steps):
 
@@ -79,6 +82,8 @@ def evaluate(args,
             # observe reward and next obs
             [state, belief, task], (rew_raw, rew_normalised), done, infos = utl.env_step(envs, action, args)
             done_mdp = [info['done_mdp'] for info in infos]
+            mean_devi_p = np.mean([info['scaled_devi_p'] for info in infos])
+            total_devi_p += mean_devi_p
 
             if encoder is not None:
                 # update the hidden state
@@ -98,6 +103,8 @@ def evaluate(args,
             if np.sum(done) > 0:
                 done_indices = np.argwhere(done.flatten()).flatten()
                 state, belief, task = utl.reset_env(envs, args, indices=done_indices, state=state)
+                
+        print(total_devi_p)
 
     envs.close()
 

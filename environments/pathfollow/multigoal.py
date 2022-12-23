@@ -3,6 +3,7 @@ import numpy as np
 from gym.utils import seeding
 
 import matplotlib.pyplot as plt
+import random
 
 
 from environments.pathfollow.ref_path import ReferencePath
@@ -76,12 +77,12 @@ class MultiGoalEnv(gym.Env):
 
     def reset_task(self, task=None):
         if task is None:
-            goal_x = np.random.uniform(low=Para.GOAL_X_LOW, high=Para.GOAL_X_UP)
-            goal_y = np.random.uniform(low=Para.GOAL_Y_LOW, high=Para.GOAL_Y_UP)
+            goal_x = random.uniform(Para.GOAL_X_LOW, Para.GOAL_X_UP)
+            goal_y = random.uniform(Para.GOAL_Y_LOW, Para.GOAL_Y_UP)
             if goal_x > 0:
-                goal_phi = np.random.uniform(low=Para.GOAL_PHI_LOW, high=90)
+                goal_phi = random.uniform(Para.GOAL_PHI_LOW, 90)
             else:
-                goal_phi = np.random.uniform(low=90, high=Para.GOAL_PHI_UP)
+                goal_phi = random.uniform(90, Para.GOAL_PHI_UP)
             self.goal_point = goal_x, goal_y, goal_phi
         else:
             self.goal_point = task
@@ -160,18 +161,18 @@ class MultiGoalEnv(gym.Env):
 
     def generate_ego_state(self):
         whole_ref_len = len(self.ref_path.whole_path[0])
-        random_index = int(np.random.uniform(low=1000, high=whole_ref_len))
-        # random_index = int(np.random.uniform(low=150, high=200))
+        random_index = int(random.uniform(1000, whole_ref_len))
+        # random_index = int(random.uniform(150, 200))
         ref_x, ref_y, ref_phi, ref_v = self.ref_path.idx2whole(random_index)
 
         # add some noise
         ego_state = [0] * 6
-        ego_state[3] = ref_x + np.random.normal(Para.MU_X, Para.SIGMA_X)
-        ego_state[4] = ref_y + np.random.normal(Para.MU_Y, Para.SIGMA_Y)
-        ego_state[5] = ref_phi + np.clip(np.random.normal(Para.MU_PHI, Para.SIGMA_PHI), -30, 30)
-        ego_state[0] = np.random.random() * ref_v
+        ego_state[3] = ref_x + random.gauss(Para.MU_X, Para.SIGMA_X)
+        ego_state[4] = ref_y + random.gauss(Para.MU_Y, Para.SIGMA_Y)
+        ego_state[5] = ref_phi + np.clip(random.gauss(Para.MU_PHI, Para.SIGMA_PHI), -30, 30)
+        ego_state[0] = random.random() * ref_v
         ego_state[1] = 0
-        ego_state[2] = np.random.random() * 2 - 1
+        ego_state[2] = random.random() * 2 - 1
 
         self.ego_state = np.array(ego_state, dtype=np.float32)
 
@@ -219,7 +220,7 @@ def test():
     while i < 1000:
         for j in range(1000):
             i += 1
-            action = np.array([0, 0.6 + np.random.random() * 0.8], dtype=np.float32)  # np.random.rand(1)*0.1 - 0.05
+            action = np.array([0, 0.6 + random.random() * 0.8], dtype=np.float32)  # random.rand(1)*0.1 - 0.05
             obs, reward, done, info = env.step(action)
             # print(done)
             obses, actions = obs[np.newaxis, :], action[np.newaxis, :]

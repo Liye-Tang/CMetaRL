@@ -43,6 +43,8 @@ def test_policy(load_path, iter):
     else:
         latent_sample = latent_mean = latent_logvar = hidden_state = None
 
+    ret = 0
+    
     for step_idx in range(num_steps):
 
         with torch.no_grad():
@@ -58,11 +60,13 @@ def test_policy(load_path, iter):
 
         # observe reward and next obs
         state, rew_raw, done, info = test_env.step(action.cpu().numpy()[0])
+        ret += rew_raw
+        print(rew_raw, info['scaled_devi_p'], info['devi_p'])
         state = torch.from_numpy(state).float().to(device).unsqueeze(0)
         rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device)
         # done = torch.from_numpy(done).float().to(device)
         # state = np.concatenate([state, 0.0])
-        test_env.render()
+        # test_env.render()
 
         if encoder is not None:
             # update the hidden state
@@ -75,14 +79,15 @@ def test_policy(load_path, iter):
         latent_sample, latent_mean, latent_logvar, hidden_state = latent_sample.unsqueeze(0), latent_mean.unsqueeze(0), latent_logvar.unsqueeze(0), hidden_state.unsqueeze(0)
 
         if done:
-            print('this is an end')
             break
+    print(ret)
         
 
 def main():
-    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__21:12_16:40:59"
-    iter = 8999
-    test_policy(load_path, iter)
+    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__23:12_18:53:48"
+    iter = 11999
+    for i in range(10):
+        test_policy(load_path, iter)
 
 
 if __name__ == "__main__":
