@@ -160,8 +160,9 @@ class MultiGoalEnv(gym.Env):
 
     def generate_ego_state(self):
         whole_ref_len = len(self.ref_path.whole_path[0])
-        random_index = int(np.random.uniform(low=1000, high=whole_ref_len))
-        # random_index = int(np.random.uniform(low=150, high=200))
+        print(whole_ref_len)
+        # random_index = int(np.random.uniform(low=150, high=whole_ref_len))
+        random_index = int(np.random.uniform(low=150, high=200))
         ref_x, ref_y, ref_phi, ref_v = self.ref_path.idx2whole(random_index)
 
         # add some noise

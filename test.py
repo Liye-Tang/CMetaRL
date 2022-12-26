@@ -29,8 +29,8 @@ def test_policy(load_path, iter):
 
     test_env = gym.make(env_name)
     num_steps = 200
-    policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)))
-    encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)))
+    policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)), map_location=torch.device('cpu'))
+    encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)), map_location=torch.device('cpu'))
 
     # reset environment
     state = test_env.reset()
@@ -42,6 +42,8 @@ def test_policy(load_path, iter):
         latent_sample, latent_mean, latent_logvar, hidden_state = encoder.prior(1)
     else:
         latent_sample = latent_mean = latent_logvar = hidden_state = None
+
+    test_return, devi_p, devi_v, devi_phi = 0, 0, 0, 0
 
     for step_idx in range(num_steps):
 
@@ -62,7 +64,7 @@ def test_policy(load_path, iter):
         rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device)
         # done = torch.from_numpy(done).float().to(device)
         # state = np.concatenate([state, 0.0])
-        test_env.render()
+        # test_env.render()
 
         if encoder is not None:
             # update the hidden state
@@ -75,14 +77,20 @@ def test_policy(load_path, iter):
         latent_sample, latent_mean, latent_logvar, hidden_state = latent_sample.unsqueeze(0), latent_mean.unsqueeze(0), latent_logvar.unsqueeze(0), hidden_state.unsqueeze(0)
 
         if done:
-            print('this is an end')
+            # print('this is an end')
+            # print(done)
             break
-        
+    
+    # print(test_return, devi_p, devi_v, devi_phi)
+    print(test_return)
+    # print('-' * 100)
+
 
 def main():
-    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__21:12_16:40:59"
-    iter = 8999
-    test_policy(load_path, iter)
+    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__26:12_20:05:43"
+    iter = 5499
+    for i in range(20):
+        test_policy(load_path, iter)
 
 
 if __name__ == "__main__":
