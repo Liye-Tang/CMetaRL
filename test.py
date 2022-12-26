@@ -28,9 +28,15 @@ def test_policy(load_path, iter):
         env_name = args.test_env_name
 
     test_env = gym.make(env_name)
+<<<<<<< HEAD
     num_steps = 200
     policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)), map_location=torch.device('cpu'))
     encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)), map_location=torch.device('cpu'))
+=======
+    num_steps = 50
+    policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)))
+    encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)))
+>>>>>>> 81d20dd4e89eb044fe06de6922635919e2501f50
 
     # reset environment
     state = test_env.reset()
@@ -43,8 +49,13 @@ def test_policy(load_path, iter):
     else:
         latent_sample = latent_mean = latent_logvar = hidden_state = None
 
+<<<<<<< HEAD
     test_return, devi_p, devi_v, devi_phi = 0, 0, 0, 0
 
+=======
+    ret = 0
+    
+>>>>>>> 81d20dd4e89eb044fe06de6922635919e2501f50
     for step_idx in range(num_steps):
 
         with torch.no_grad():
@@ -60,6 +71,8 @@ def test_policy(load_path, iter):
 
         # observe reward and next obs
         state, rew_raw, done, info = test_env.step(action.cpu().numpy()[0])
+        ret += rew_raw
+        # print(rew_raw, info['scaled_devi_p'], info['devi_p'])
         state = torch.from_numpy(state).float().to(device).unsqueeze(0)
         rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device)
         # done = torch.from_numpy(done).float().to(device)
@@ -77,6 +90,7 @@ def test_policy(load_path, iter):
         latent_sample, latent_mean, latent_logvar, hidden_state = latent_sample.unsqueeze(0), latent_mean.unsqueeze(0), latent_logvar.unsqueeze(0), hidden_state.unsqueeze(0)
 
         if done:
+<<<<<<< HEAD
             # print('this is an end')
             # print(done)
             break
@@ -85,11 +99,20 @@ def test_policy(load_path, iter):
     print(test_return)
     # print('-' * 100)
 
+=======
+            break
+    print(ret)
+        
+>>>>>>> 81d20dd4e89eb044fe06de6922635919e2501f50
 
 def main():
     load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__26:12_20:05:43"
     iter = 5499
+<<<<<<< HEAD
     for i in range(20):
+=======
+    for i in range(10):
+>>>>>>> 81d20dd4e89eb044fe06de6922635919e2501f50
         test_policy(load_path, iter)
 
 
