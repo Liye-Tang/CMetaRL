@@ -28,7 +28,7 @@ def test_policy(load_path, iter):
         env_name = args.test_env_name
 
     test_env = gym.make(env_name)
-    num_steps = 200
+    num_steps = 50
     policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)))
     encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)))
 
@@ -61,7 +61,7 @@ def test_policy(load_path, iter):
         # observe reward and next obs
         state, rew_raw, done, info = test_env.step(action.cpu().numpy()[0])
         ret += rew_raw
-        print(rew_raw, info['scaled_devi_p'], info['devi_p'])
+        # print(rew_raw, info['scaled_devi_p'], info['devi_p'])
         state = torch.from_numpy(state).float().to(device).unsqueeze(0)
         rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device)
         # done = torch.from_numpy(done).float().to(device)
@@ -84,8 +84,8 @@ def test_policy(load_path, iter):
         
 
 def main():
-    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__23:12_18:53:48"
-    iter = 11999
+    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__26:12_20:05:43"
+    iter = 5499
     for i in range(10):
         test_policy(load_path, iter)
 

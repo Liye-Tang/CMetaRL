@@ -15,8 +15,8 @@ class Para:
     N = 20
 
     # reward hparam
-    scale_devi_p: float = 1
-    scale_devi_v: float = 0.05
+    scale_devi_p: float = 2
+    scale_devi_v: float = 0.01
     scale_devi_phi: float = 0.8
     scale_punish_yaw_rate: float = 0.02  # 0.1
     scale_punish_steer: float = 0.2  # 1

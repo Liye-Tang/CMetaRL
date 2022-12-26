@@ -87,7 +87,7 @@ class EnvironmentModel(object):
                   Para.scale_devi_phi * devi_phi + \
                   Para.scale_punish_yaw_rate * punish_yaw_rate + \
                   Para.scale_punish_steer * punish_steer + \
-                  Para.scale_punish_a_x * punish_a_x
+                  Para.scale_punish_a_x * punish_a_x + 1
 
         reward_dict = dict(devi_p=devi_p,
                            devi_v=devi_v,

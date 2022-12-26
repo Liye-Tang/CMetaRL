@@ -124,8 +124,8 @@ class MultiGoalEnv(gym.Env):
         """
         if self._deviate_too_much():
             return 'deviate too much', 1
-        elif self.area_index == 2:
-            return 'good done', 2
+        # elif self.area_index == 2:
+        #     return 'good done', 2
         else:
             return 'not_done', 0
 
@@ -161,7 +161,7 @@ class MultiGoalEnv(gym.Env):
 
     def generate_ego_state(self):
         whole_ref_len = len(self.ref_path.whole_path[0])
-        random_index = int(random.uniform(1000, whole_ref_len))
+        random_index = int(random.uniform(150, whole_ref_len-100))
         # random_index = int(random.uniform(150, 200))
         ref_x, ref_y, ref_phi, ref_v = self.ref_path.idx2whole(random_index)
 
