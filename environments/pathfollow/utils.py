@@ -15,12 +15,12 @@ class Para:
     N = 20
 
     # reward hparam
-    scale_devi_p: float = 2
+    scale_devi_p: float = 0.1
     scale_devi_v: float = 0.01
     scale_devi_phi: float = 0.8
-    scale_punish_yaw_rate: float = 0.02  # 0.1
-    scale_punish_steer: float = 0.2  # 1
-    scale_punish_a_x: float = 0.02  # 0.1
+    scale_punish_yaw_rate: float = 0.1  # 0.1
+    scale_punish_steer: float = 1  # 1
+    scale_punish_a_x: float = 0.1  # 0.1
 
     # action scale factor
     ACC_SCALE: float = 3.0
@@ -48,6 +48,7 @@ class Para:
     METER_POINT_NUM: int = 30
     START_LENGTH: float = 5.
     END_LENGTH: float = 5.
+    EXPECTED_V = 3
 
     # initial obs noise
     MU_X: float = 0
@@ -98,7 +99,7 @@ def rotate_coordination(orig_x, orig_y, orig_d, coordi_rotate_d):
     coordi_rotate_d_in_rad = coordi_rotate_d * math.pi / 180
     transformed_x = orig_x * math.cos(coordi_rotate_d_in_rad) + orig_y * math.sin(coordi_rotate_d_in_rad)
     transformed_y = -orig_x * math.sin(coordi_rotate_d_in_rad) + orig_y * math.cos(coordi_rotate_d_in_rad)
-    transformed_d = orig_d - coordi_rotate_d
+    transformed_d = orig_d - coordi_rotate_d - 90
     # if transformed_d > 180:
     #     while transformed_d > 180:
     #         transformed_d = transformed_d - 360

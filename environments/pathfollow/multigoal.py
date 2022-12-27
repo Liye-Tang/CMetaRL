@@ -139,7 +139,7 @@ class MultiGoalEnv(gym.Env):
         rela_ego_state = self.convert_to_rela(self.ego_state)
         rela_ref_x, rela_ref_y, rela_ref_phi = \
             shift_and_rotate_coordination(self.future_n_point[0], self.future_n_point[1], self.future_n_point[2],
-                                          self.future_n_point[0][0], self.future_n_point[1][0], self.future_n_point[2][0])
+                                          self.future_n_point[0][0], self.future_n_point[1][0], self.future_n_point[2][0] - 90)
         self.obs = np.concatenate(
             (rela_ego_state, rela_ref_x, rela_ref_y, rela_ref_phi),
             axis=0)
@@ -161,7 +161,7 @@ class MultiGoalEnv(gym.Env):
 
     def generate_ego_state(self):
         whole_ref_len = len(self.ref_path.whole_path[0])
-        random_index = int(random.uniform(150, whole_ref_len-100))
+        random_index = int(random.uniform(150, whole_ref_len - 200))
         # random_index = int(random.uniform(150, 200))
         ref_x, ref_y, ref_phi, ref_v = self.ref_path.idx2whole(random_index)
 
@@ -181,7 +181,7 @@ class MultiGoalEnv(gym.Env):
         rela_x, rela_y, rela_phi = shift_and_rotate_coordination(ego_x, ego_y, ego_phi,
                                                                  self.closest_point[0],
                                                                  self.closest_point[1],
-                                                                 self.closest_point[2],)
+                                                                 self.closest_point[2] - 90,)
         return np.concatenate((ego_state[:3],
                                [rela_x, rela_y, rela_phi]),
                               axis=0)

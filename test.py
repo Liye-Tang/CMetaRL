@@ -44,6 +44,12 @@ def test_policy(load_path, iter):
         latent_sample = latent_mean = latent_logvar = hidden_state = None
 
     ret = 0
+    devi_p = 0
+    devi_v = 0
+    devi_phi = 0
+    punish_steer = 0
+    punish_a_x = 0
+    punish_yaw_rate = 0
     
     for step_idx in range(num_steps):
 
@@ -61,7 +67,13 @@ def test_policy(load_path, iter):
         # observe reward and next obs
         state, rew_raw, done, info = test_env.step(action.cpu().numpy()[0])
         ret += rew_raw
-        # print(rew_raw, info['scaled_devi_p'], info['devi_p'])
+        devi_p += info['scaled_devi_p']
+        devi_v += info['scaled_devi_v']
+        devi_phi += info['scaled_devi_phi']
+        punish_steer += info['scaled_punish_steer']
+        punish_a_x += info['scaled_punish_a_x']
+        punish_yaw_rate += info['scaled_punish_yaw_rate']
+        
         state = torch.from_numpy(state).float().to(device).unsqueeze(0)
         rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device)
         # done = torch.from_numpy(done).float().to(device)
@@ -80,12 +92,19 @@ def test_policy(load_path, iter):
 
         if done:
             break
-    print(ret)
+    print("return: ", ret, 
+          "devi_p: ", devi_p,
+          "devi_v: ", devi_v,
+          "devi_phi: ", devi_phi,
+          "punish_punish_steer: ", punish_steer,
+          "scaled_punish_a_x: ", punish_a_x,
+          "punish_punish_yaw_rate: ", punish_yaw_rate)
+    print('-'*100)
         
 
 def main():
-    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__26:12_20:05:43"
-    iter = 5499
+    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__28:12_00:06:57"
+    iter = 499
     for i in range(10):
         test_policy(load_path, iter)
 

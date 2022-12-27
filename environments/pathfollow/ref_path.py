@@ -10,7 +10,7 @@ class ReferencePath(object):
     def __init__(self, goal_point, start_point=(0, 0, 90)):
         self.start_point = start_point
         self.goal_point = goal_point
-        self.exp_v = 5
+        self.exp_v = Para.EXPECTED_V
         self.control_points = self.get_bezier_control_points()
         self.ref_path = self.construct_ref_path()
         self.whole_path = self.construct_whole_path()
@@ -136,6 +136,7 @@ class ReferencePath(object):
 
         # area 0
         area_index = 0
+        index = -1
         if ego_y < 0:
             closest_point = 0, ego_y, 90, self.exp_v
             min_dist = np.square(ego_x)
@@ -170,6 +171,7 @@ class ReferencePath(object):
 
         if dist < min_dist:
             area_index = 2
+            index = -2
             closest_point = x, y, self.goal_point[2], self.exp_v
             min_dist = dist
 
