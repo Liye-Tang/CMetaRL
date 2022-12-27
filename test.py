@@ -28,9 +28,9 @@ def test_policy(load_path, iter):
         env_name = args.test_env_name
 
     test_env = gym.make(env_name)
-    num_steps = 50
-    policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)))
-    encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)))
+    num_steps = 200
+    policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)), map_location=torch.device('cpu'))
+    encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)), map_location=torch.device('cpu'))
 
     # reset environment
     state = test_env.reset()
@@ -43,14 +43,8 @@ def test_policy(load_path, iter):
     else:
         latent_sample = latent_mean = latent_logvar = hidden_state = None
 
-    ret = 0
-    devi_p = 0
-    devi_v = 0
-    devi_phi = 0
-    punish_steer = 0
-    punish_a_x = 0
-    punish_yaw_rate = 0
-    
+    test_return, devi_p, devi_v, devi_phi = 0, 0, 0, 0
+
     for step_idx in range(num_steps):
 
         with torch.no_grad():
@@ -91,21 +85,19 @@ def test_policy(load_path, iter):
         latent_sample, latent_mean, latent_logvar, hidden_state = latent_sample.unsqueeze(0), latent_mean.unsqueeze(0), latent_logvar.unsqueeze(0), hidden_state.unsqueeze(0)
 
         if done:
+            # print('this is an end')
+            # print(done)
             break
-    print("return: ", ret, 
-          "devi_p: ", devi_p,
-          "devi_v: ", devi_v,
-          "devi_phi: ", devi_phi,
-          "punish_punish_steer: ", punish_steer,
-          "scaled_punish_a_x: ", punish_a_x,
-          "punish_punish_yaw_rate: ", punish_yaw_rate)
-    print('-'*100)
-        
+    
+    # print(test_return, devi_p, devi_v, devi_phi)
+    print(test_return)
+    # print('-' * 100)
+
 
 def main():
     load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__28:12_00:06:57"
     iter = 499
-    for i in range(10):
+    for i in range(20):
         test_policy(load_path, iter)
 
 
