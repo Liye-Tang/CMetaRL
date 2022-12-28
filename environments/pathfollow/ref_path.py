@@ -193,21 +193,43 @@ class ReferencePath(object):
             future_n_phi = [cl_phi] * n
             future_n_v = [self.exp_v] * n
         else:  # area 1
+            future_n_x = [cl_x]
+            future_n_y = [cl_y]
+            future_n_phi = [cl_phi]
+            future_n_v = [cl_v]
             x, y = cl_x, cl_y
-            for _ in range(n):
-                s = 0
-                while s < ds:
-                    if index + 1 >= len(self.ref_path[0]):
+            for point_num in range(n - 1):
+                if index < len(self.ref_path[0]) - 1:
+                    s = 0
+                    while s < ds:
+                        if index >= len(self.ref_path[0]) - 1:
+                            break
+                        next_x, next_y, _, _ = self.idx2point(index + 1)
+                        s += np.sqrt(np.square(next_x - x) + np.square(next_y - y))
+                        x, y = next_x, next_y
+                        index += 1
+                    if index < len(self.ref_path[0]) - 1:
+                        x, y, phi, v = self.idx2point(index)
+                        future_n_x.append(x)
+                        future_n_y.append(y)
+                        future_n_phi.append(phi)
+                        future_n_v.append(v)
+                    else:
                         break
-                    next_x, next_y, _, _ = self.idx2point(index + 1)
-                    s += np.sqrt(np.square(next_x - x) + np.square(next_y - y))
-                    x, y = next_x, next_y
-                    index += 1
-                x, y, phi, v = self.idx2point(index)
-                future_n_x.append(x)
-                future_n_y.append(y)
-                future_n_phi.append(phi)
-                future_n_v.append(v)
+            if index >= len(self.ref_path[0]) - 1:
+                remain_point_num = n - 1 - point_num
+                remain_dis = ds - s
+                last_x, last_y, last_phi, last_v = self.idx2point(index)
+                start_x = last_x + remain_dis * cos(last_phi * pi / 180)
+                start_y = last_y + remain_dis * sin(last_phi * pi / 180)
+                start_phi = last_phi
+                start_v = last_v
+            
+                for k in range(remain_point_num):
+                    future_n_x.append(start_x + ds * cos(last_phi * pi / 180) * k)
+                    future_n_y.append(start_y + ds * sin(last_phi * pi / 180) * k)
+                    future_n_phi.append(start_phi)
+                    future_n_v.append(start_v)
 
         future_n_point = np.stack([np.array(future_n_x, dtype=np.float32), np.array(future_n_y, dtype=np.float32),
                                    np.array(future_n_phi, dtype=np.float32), np.array(future_n_v, dtype=np.float32)],
