@@ -36,7 +36,7 @@ def get_args(rest_args):
     parser.add_argument('--norm_actions_post_sampling', type=boolean_argument, default=False, help='normalise policy output')
 
     # network
-    parser.add_argument('--policy_layers', nargs='+', default=[256, 256, 256, 256, 256])
+    parser.add_argument('--policy_layers', nargs='+', default=[256, 256])
     parser.add_argument('--policy_activation_function', type=str, default='tanh', help='tanh/relu/leaky-relu')
     parser.add_argument('--policy_initialisation', type=str, default='normc', help='normc/orthogonal')
     parser.add_argument('--policy_anneal_lr', type=boolean_argument, default=False)
@@ -47,7 +47,7 @@ def get_args(rest_args):
 
     # PPO specific
     parser.add_argument('--ppo_num_epochs', type=int, default=2, help='number of epochs per PPO update')
-    parser.add_argument('--ppo_num_minibatch', type=int, default=4, help='number of minibatches to split the data')
+    parser.add_argument('--ppo_num_minibatch', type=int, default=2, help='number of minibatches to split the data')
     parser.add_argument('--ppo_use_huberloss', type=boolean_argument, default=True, help='use huberloss instead of MSE')
     parser.add_argument('--ppo_use_clipped_value_loss', type=boolean_argument, default=True, help='clip value loss')
     parser.add_argument('--ppo_clip_param', type=float, default=0.05, help='clamp param')
@@ -69,8 +69,8 @@ def get_args(rest_args):
     parser.add_argument('--use_proper_time_limits', type=boolean_argument, default=False,
                         help='treat timeout and death differently (important in mujoco)')
     parser.add_argument('--policy_max_grad_norm', type=float, default=0.5, help='max norm of gradients')
-    parser.add_argument('--encoder_max_grad_norm', type=float, default=None, help='max norm of gradients')
-    parser.add_argument('--decoder_max_grad_norm', type=float, default=None, help='max norm of gradients')
+    parser.add_argument('--encoder_max_grad_norm', type=float, default=0.5, help='max norm of gradients')
+    parser.add_argument('--decoder_max_grad_norm', type=float, default=0.5, help='max norm of gradients')
 
     # --- VAE TRAINING ---
 
@@ -97,7 +97,7 @@ def get_args(rest_args):
     parser.add_argument('--num_vae_updates', type=int, default=1,
                         help='how many VAE update steps to take per meta-iteration')
     parser.add_argument('--pretrain_len', type=int, default=0, help='for how many updates to pre-train the VAE')
-    parser.add_argument('--kl_weight', type=float, default=0.01, help='weight for the KL term')
+    parser.add_argument('--kl_weight', type=float, default=0.1, help='weight for the KL term')
 
     parser.add_argument('--split_batches_by_task', type=boolean_argument, default=False,
                         help='split batches up by task (to save memory or if tasks are of different length)')
@@ -105,7 +105,7 @@ def get_args(rest_args):
                         help='split batches up by elbo term (to save memory of if ELBOs are of different length)')
 
     # - encoder
-    parser.add_argument('--action_embedding_size', type=int, default=8)
+    parser.add_argument('--action_embedding_size', type=int, default=16)
     parser.add_argument('--state_embedding_size', type=int, default=32)
     parser.add_argument('--reward_embedding_size', type=int, default=0)
     parser.add_argument('--encoder_layers_before_gru', nargs='+', type=int, default=[])
