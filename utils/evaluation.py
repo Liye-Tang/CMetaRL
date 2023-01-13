@@ -65,6 +65,11 @@ def evaluate(args,
     for episode_idx in range(num_episodes):
         
         total_devi_p = 0
+        total_devi_v = 0
+        total_devi_phi = 0
+        total_punish_steer = 0
+        total_punish_a_x = 0
+        total_punish_yaw_rate = 0
 
         for step_idx in range(num_steps):
 
@@ -83,7 +88,17 @@ def evaluate(args,
             [state, belief, task], (rew_raw, rew_normalised), done, infos = utl.env_step(envs, action, args)
             done_mdp = [info['done_mdp'] for info in infos]
             mean_devi_p = np.mean([info['scaled_devi_p'] for info in infos])
+            mean_devi_v = np.mean([info['scaled_devi_v'] for info in infos])
+            mean_devi_phi = np.mean([info['scaled_devi_phi'] for info in infos])
+            mean_punish_steer = np.mean([info['scaled_punish_steer'] for info in infos])
+            mean_punish_a_x = np.mean([info['scaled_punish_a_x'] for info in infos])
+            mean_punish_yaw_rate = np.mean([info['scaled_punish_yaw_rate'] for info in infos])
             total_devi_p += mean_devi_p
+            total_devi_v += mean_devi_v
+            total_devi_phi += mean_devi_phi
+            total_punish_steer += mean_punish_steer
+            total_punish_a_x += mean_punish_a_x
+            total_punish_yaw_rate += mean_punish_yaw_rate
 
             if encoder is not None:
                 # update the hidden state
@@ -104,7 +119,12 @@ def evaluate(args,
                 done_indices = np.argwhere(done.flatten()).flatten()
                 state, belief, task = utl.reset_env(envs, args, indices=done_indices, state=state)
                 
-        print(total_devi_p)
+        print("total_devi_p:", total_devi_p)
+        print("total_devi_v:", total_devi_v)
+        print("total_devi_phi:", total_devi_phi)
+        print("total_punish_steer:", total_punish_steer)
+        print("total_punish_a_x:", total_punish_a_x)
+        print("total_punish_yaw_rate:", total_punish_yaw_rate)
 
     envs.close()
 

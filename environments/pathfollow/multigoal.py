@@ -24,8 +24,8 @@ class MultiGoalEnv(gym.Env):
                 [np.inf] * (Para.EGO_DIM + Para.N * 3)
             ),
             dtype=np.float32)   # TODO
-        self.action_space = gym.spaces.Box(low=np.array([-0.4, -4]),
-                                           high=np.array([0.4, 2]),
+        self.action_space = gym.spaces.Box(low=np.array([-1, -1]),
+                                           high=np.array([1, 1]),
                                            dtype=np.float32)    # TODO
         self.seed()
 
@@ -35,7 +35,7 @@ class MultiGoalEnv(gym.Env):
         self.closest_point = None
         self.future_n_point = None
         self.area_index = None
-        self.obs_scale = [1/10, 1/10, 1/5, 1/10, 1/10, 1/180] + [1/10] * 20 + [1/10] * 20 + [1/180] * 20
+        self.obs_scale = [1/10, 1/10, 1/10, 1/10, 1/10, 1/180] + [1/10] * 20 + [1/10] * 20 + [1/180] * 20
         self.task_dim = 3
 
         self.start_point = start_point
@@ -63,7 +63,7 @@ class MultiGoalEnv(gym.Env):
         reward, reward_info = self.compute_reward(self.obs, self.action, self.closest_point)
         info.update(reward_info)
         # self.ego_state, ego_state_param = self.ego_dynamic.prediction(self.ego_state, action, Para.FREQUENCY)
-        self.ego_state, ego_param = self.get_next_ego_state(action)
+        self.ego_state, ego_param = self.get_next_ego_state(self.action)
         self.update_obs()
         # info.update({'future_n_point': self.future_n_point, 'closest_point': self.closest_point})
         self.done_type, self.done = self.judge_done()
@@ -161,7 +161,7 @@ class MultiGoalEnv(gym.Env):
 
     def generate_ego_state(self):
         whole_ref_len = len(self.ref_path.whole_path[0])
-        random_index = int(random.uniform(150, whole_ref_len - 200))
+        random_index = int(random.uniform(150, whole_ref_len))
         # random_index = int(random.uniform(150, 200))
         ref_x, ref_y, ref_phi, ref_v = self.ref_path.idx2whole(random_index)
 
@@ -177,12 +177,13 @@ class MultiGoalEnv(gym.Env):
         self.ego_state = np.array(ego_state, dtype=np.float32)
 
     def convert_to_rela(self, ego_state):
-        _, _, _, ego_x, ego_y, ego_phi = ego_state
+        ego_vx, _, _, ego_x, ego_y, ego_phi = ego_state
+        rela_vx = ego_vx - self.ref_path.exp_v
         rela_x, rela_y, rela_phi = shift_and_rotate_coordination(ego_x, ego_y, ego_phi,
                                                                  self.closest_point[0],
                                                                  self.closest_point[1],
                                                                  self.closest_point[2] - 90,)
-        return np.concatenate((ego_state[:3],
+        return np.concatenate(([rela_vx], ego_state[1: 3],
                                [rela_x, rela_y, rela_phi]),
                               axis=0)
 

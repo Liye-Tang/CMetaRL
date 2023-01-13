@@ -32,7 +32,7 @@ def get_args(rest_args):
     parser.add_argument('--norm_belief_for_policy', type=boolean_argument, default=True, help='normalise belief input')
     parser.add_argument('--norm_task_for_policy', type=boolean_argument, default=True, help='normalise task input')
     parser.add_argument('--norm_rew_for_policy', type=boolean_argument, default=True, help='normalise rew for RL train')
-    parser.add_argument('--norm_actions_pre_sampling', type=boolean_argument, default=False, help='normalise policy output')
+    parser.add_argument('--norm_actions_pre_sampling', type=boolean_argument, default=True, help='normalise policy output')
     parser.add_argument('--norm_actions_post_sampling', type=boolean_argument, default=False, help='normalise policy output')
 
     # network
@@ -62,7 +62,7 @@ def get_args(rest_args):
     parser.add_argument('--policy_init_std', type=float, default=1.0, help='only used for continuous actions')
     parser.add_argument('--policy_value_loss_coef', type=float, default=0.5, help='value loss coefficient')
     parser.add_argument('--policy_entropy_coef', type=float, default=0.01, help='entropy term coefficient')
-    parser.add_argument('--policy_gamma', type=float, default=0.95, help='discount factor for rewards')
+    parser.add_argument('--policy_gamma', type=float, default=0.98, help='discount factor for rewards')
     parser.add_argument('--policy_use_gae', type=boolean_argument, default=True,
                         help='use generalized advantage estimation')
     parser.add_argument('--policy_tau', type=float, default=0.95, help='gae parameter')
@@ -75,14 +75,14 @@ def get_args(rest_args):
     # --- VAE TRAINING ---
 
     # general
-    parser.add_argument('--lr_vae', type=float, default=0.001)
+    parser.add_argument('--lr_vae', type=float, default=0.0004)
     parser.add_argument('--size_vae_buffer', type=int, default=10000,
                         help='how many trajectories (!) to keep in VAE buffer')
-    parser.add_argument('--precollect_len', type=int, default=5000,
+    parser.add_argument('--precollect_len', type=int, default=10000,
                         help='how many frames to pre-collect before training begins (useful to fill VAE buffer)')
     parser.add_argument('--vae_buffer_add_thresh', type=float, default=1,
                         help='probability of adding a new trajectory to buffer')
-    parser.add_argument('--vae_batch_num_trajs', type=int, default=10,
+    parser.add_argument('--vae_batch_num_trajs', type=int, default=20,
                         help='how many trajectories to use for VAE update')
     parser.add_argument('--tbptt_stepsize', type=int, default=50,
                         help='stepsize for truncated backpropagation through time; None uses max (horizon of BAMDP)')
@@ -94,10 +94,10 @@ def get_args(rest_args):
                         help='Average ELBO terms (instead of sum)')
     parser.add_argument('--vae_avg_reconstruction_terms', type=boolean_argument, default=False,
                         help='Average reconstruction terms (instead of sum)')
-    parser.add_argument('--num_vae_updates', type=int, default=1,
+    parser.add_argument('--num_vae_updates', type=int, default=5,
                         help='how many VAE update steps to take per meta-iteration')
     parser.add_argument('--pretrain_len', type=int, default=0, help='for how many updates to pre-train the VAE')
-    parser.add_argument('--kl_weight', type=float, default=0.1, help='weight for the KL term')
+    parser.add_argument('--kl_weight', type=float, default=1.0, help='weight for the KL term')
 
     parser.add_argument('--split_batches_by_task', type=boolean_argument, default=False,
                         help='split batches up by task (to save memory or if tasks are of different length)')
@@ -105,13 +105,13 @@ def get_args(rest_args):
                         help='split batches up by elbo term (to save memory of if ELBOs are of different length)')
 
     # - encoder
-    parser.add_argument('--action_embedding_size', type=int, default=16)
+    parser.add_argument('--action_embedding_size', type=int, default=32)
     parser.add_argument('--state_embedding_size', type=int, default=32)
-    parser.add_argument('--reward_embedding_size', type=int, default=0)
-    parser.add_argument('--encoder_layers_before_gru', nargs='+', type=int, default=[])
-    parser.add_argument('--encoder_gru_hidden_size', type=int, default=128, help='dimensionality of RNN hidden state')
-    parser.add_argument('--encoder_layers_after_gru', nargs='+', type=int, default=[])
-    parser.add_argument('--latent_dim', type=int, default=5, help='dimensionality of latent space')
+    parser.add_argument('--reward_embedding_size', type=int, default=32)
+    parser.add_argument('--encoder_layers_before_gru', nargs='+', type=int, default=[128, 128])
+    parser.add_argument('--encoder_gru_hidden_size', type=int, default=256, help='dimensionality of RNN hidden state')
+    parser.add_argument('--encoder_layers_after_gru', nargs='+', type=int, default=[128, 128])
+    parser.add_argument('--latent_dim', type=int, default=3, help='dimensionality of latent space')
 
     # - decoder: rewards
     parser.add_argument('--decode_reward', type=boolean_argument, default=False, help='use reward decoder')
@@ -130,7 +130,7 @@ def get_args(rest_args):
     # - decoder: state transitions
     parser.add_argument('--decode_state', type=boolean_argument, default=True, help='use state decoder')
     parser.add_argument('--state_loss_coeff', type=float, default=1.0, help='weight for state loss')
-    parser.add_argument('--state_decoder_layers', nargs='+', type=int, default=[64, 32])
+    parser.add_argument('--state_decoder_layers', nargs='+', type=int, default=[128, 128])
     parser.add_argument('--state_pred_type', type=str, default='deterministic', help='choose: deterministic, gaussian')
 
     # - decoder: ground-truth task ("varibad oracle", after Humplik et al. 2019)
