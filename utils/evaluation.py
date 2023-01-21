@@ -47,8 +47,7 @@ def evaluate(args,
                          tasks=tasks,
                          add_done_info=args.max_rollouts_per_task > 1,
                          )
-    # num_steps = envs._max_episode_steps
-    num_steps = 50
+    num_steps = envs._max_episode_steps
 
     # reset environments
     state, belief, task = utl.reset_env(envs, args)

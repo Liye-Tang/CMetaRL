@@ -31,13 +31,21 @@ class TBLogger:
                     dir_path_head, dir_path_tail = os.path.split(dir_path_head)
                 os.mkdir(dir_path_head)
                 os.mkdir(dir_path)
-
-        try:
-            self.full_output_folder = os.path.join(os.path.join(dir_path, 'logs_{}'.format(args.env_name)),
-                                                   self.output_name)
-        except:
-            self.full_output_folder = os.path.join(os.path.join(dir_path, 'logs_{}'.format(args["env_name"])),
-                                                   self.output_name)
+        
+        if args.env_name == 'MultiGoalEnv-v0':
+            if args.disable_metalearner:
+                self.full_output_folder = os.path.join(os.path.join(dir_path, '{}'.format(args.env_name)),
+                                                    self.output_name)
+            else:
+                self.full_output_folder = os.path.join(os.path.join(dir_path, '{}-meta'.format(args.env_name)),
+                                                    self.output_name)
+        else:
+            try:
+                self.full_output_folder = os.path.join(os.path.join(dir_path, 'logs_{}'.format(args.env_name)),
+                                                    self.output_name)
+            except:
+                self.full_output_folder = os.path.join(os.path.join(dir_path, 'logs_{}'.format(args["env_name"])),
+                                                    self.output_name)
 
         self.writer = SummaryWriter(log_dir=self.full_output_folder)
 

@@ -35,13 +35,13 @@ class MultiGoalEnv(gym.Env):
         self.closest_point = None
         self.future_n_point = None
         self.area_index = None
-        self.obs_scale = [1/10, 1/10, 1/10, 1/10, 1/10, 1/180] + [1/10] * 20 + [1/10] * 20 + [1/180] * 20
+        self.obs_scale = [1/10, 1/10, 1/10, 1/10, 1/10, 1/180] + [1/10] * Para.N + [1/10] * Para.N + [1/180] * Para.N
         self.task_dim = 3
 
         self.start_point = start_point
         self.goal_point = goal_point
 
-        self._max_episode_steps = 200
+        self._max_episode_steps = Para.MAX_STEPS
 
         self.done_type = None
         self.done = False
@@ -59,13 +59,10 @@ class MultiGoalEnv(gym.Env):
     def step(self, action):
         info = {}
         self.action = action_denormalize(action)
-        # print('action_in_env', self.action)
         reward, reward_info = self.compute_reward(self.obs, self.action, self.closest_point)
         info.update(reward_info)
-        # self.ego_state, ego_state_param = self.ego_dynamic.prediction(self.ego_state, action, Para.FREQUENCY)
         self.ego_state, ego_param = self.get_next_ego_state(self.action)
         self.update_obs()
-        # info.update({'future_n_point': self.future_n_point, 'closest_point': self.closest_point})
         self.done_type, self.done = self.judge_done()
         return self.obs * self.obs_scale, reward, self.done, info
 

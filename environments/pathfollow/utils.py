@@ -6,21 +6,32 @@ from matplotlib.patches import Wedge
 from matplotlib.collections import PatchCollection
 import math
 
+import argparse
+from config.vehicle import args_veh_varibad
+
 
 @dataclass
 class Para:
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--env-type', default='vehicle_varibad')
+    args, rest_args = parser.parse_known_args()
+    args = args_veh_varibad.get_args(rest_args)
+
     # dim
     EGO_DIM: int = 6
     GOAL_DIM: int = 3
-    N = 20
+    N = args.N
 
     # reward hparam
-    scale_devi_p: float = 0.3
-    scale_devi_v: float = 0.1
-    scale_devi_phi: float = 0.8
-    scale_punish_yaw_rate: float = 0.1  # 0.1
-    scale_punish_steer: float = 1  # 1
-    scale_punish_a_x: float = 0.1  # 0.1
+    scale_devi_p: float = args.scale_devi_p
+    scale_devi_v: float = args.scale_devi_v
+    scale_devi_phi: float = args.scale_devi_phi
+    scale_punish_yaw_rate: float = args.scale_punish_yaw_rate  # 0.1
+    scale_punish_steer: float = args.scale_punish_steer  # 1
+    scale_punish_a_x: float = args.scale_punish_a_x  # 0.1
+
+    reward_shift: float = args.reward_shift
 
     # action scale factor
     ACC_SCALE: float = 3.0
@@ -29,12 +40,14 @@ class Para:
     STEER_SHIFT: float = 0
 
     # done
-    POS_TOLERANCE: float = 10
-    ANGLE_TOLERANCE: float = 60.0
+    POS_TOLERANCE: float = 10.
+    ANGLE_TOLERANCE: float = 60.
 
     # ego shape
     L: float = 4.8
-    W: float = 2.0
+    W: float = 2.
+
+    MAX_STEPS = args.num_max_step
 
     # goal
     GOAL_X_LOW: float = -40.
@@ -48,7 +61,7 @@ class Para:
     METER_POINT_NUM: int = 30
     START_LENGTH: float = 5.
     END_LENGTH: float = 5.
-    EXPECTED_V = 3.
+    EXPECTED_V = args.EXPECTED_V
 
     # initial obs noise
     MU_X: float = 0
