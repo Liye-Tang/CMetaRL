@@ -127,7 +127,7 @@ def evaluate(args,
 
         # TODO: test the env initial feasiblity
         returns_avg = returns_per_episode[:, :num_episodes].mean(dim=0)
-        if returns_avg + total_devi_p + total_devi_v + total_devi_phi + total_punish_steer + total_punish_a_x + total_punish_yaw_rate < 400 - 5:
+        if returns_avg - total_devi_p - total_devi_v - total_devi_phi - total_punish_steer - total_punish_a_x - total_punish_yaw_rate < 400 - 5:
             print("return_list: ", returns_per_episode[:, :num_episodes])
 
     envs.close()
