@@ -169,7 +169,7 @@ class MultiGoalEnv(gym.Env):
         ego_state[5] = ref_phi + np.clip(random.gauss(Para.MU_PHI, Para.SIGMA_PHI), -30, 30)
         ego_state[0] = random.random() * ref_v
         ego_state[1] = 0
-        ego_state[2] = random.random() * 2 - 1
+        ego_state[2] = random.random() * 0.2 - 0.1
 
         self.ego_state = np.array(ego_state, dtype=np.float32)
 
