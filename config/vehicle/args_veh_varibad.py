@@ -7,7 +7,7 @@ def get_args(rest_args):
 
     # --- GENERAL ---
 
-    parser.add_argument('--num_frames', type=int, default=1e8, help='number of frames to train')
+    parser.add_argument('--num_frames', type=int, default=2e7, help='number of frames to train')
     parser.add_argument('--max_rollouts_per_task', type=int, default=1, help='number of MDP episodes for adaptation')
     parser.add_argument('--exp_label', default='varibad', help='label (typically name of method)')
     parser.add_argument('--env_name', default='MultiGoalEnv-v0', help='environment to train on')
@@ -33,13 +33,13 @@ def get_args(rest_args):
     parser.add_argument('--norm_task_for_policy', type=boolean_argument, default=True, help='normalise task input')
     parser.add_argument('--norm_rew_for_policy', type=boolean_argument, default=True, help='normalise rew for RL train')
     parser.add_argument('--norm_actions_pre_sampling', type=boolean_argument, default=True, help='normalise policy output')
-    parser.add_argument('--norm_actions_post_sampling', type=boolean_argument, default=False, help='normalise policy output')
+    parser.add_argument('--norm_actions_post_sampling', type=boolean_argument, default=True, help='normalise policy output')
 
     # network
     parser.add_argument('--policy_layers', nargs='+', default=[256, 256])
     parser.add_argument('--policy_activation_function', type=str, default='tanh', help='tanh/relu/leaky-relu')
     parser.add_argument('--policy_initialisation', type=str, default='normc', help='normc/orthogonal')
-    parser.add_argument('--policy_anneal_lr', type=boolean_argument, default=False)
+    parser.add_argument('--policy_anneal_lr', type=boolean_argument, default=True)
 
     # RL algorithm
     parser.add_argument('--policy', type=str, default='ppo', help='choose: a2c, ppo')
@@ -75,7 +75,7 @@ def get_args(rest_args):
     # --- VAE TRAINING ---
 
     # general
-    parser.add_argument('--lr_vae', type=float, default=0.0001)
+    parser.add_argument('--lr_vae', type=float, default=0.00001)
     parser.add_argument('--size_vae_buffer', type=int, default=10000,
                         help='how many trajectories (!) to keep in VAE buffer')
     parser.add_argument('--precollect_len', type=int, default=10000,
@@ -179,8 +179,8 @@ def get_args(rest_args):
     parser.add_argument('--scale_punish_yaw_rate', type=float, default=0.1, help='None')
     parser.add_argument('--scale_punish_steer', type=float, default=1, help='None')
     parser.add_argument('--scale_punish_a_x', type=float, default=0.1, help='None')
-    parser.add_argument('--reward_shift', type=float, default=1., help='None')
-    parser.add_argument('--N', type=int, default=10, help='the predictive horizon')
+    parser.add_argument('--reward_shift', type=float, default=2., help='None')
+    parser.add_argument('--N', type=int, default=20, help='the predictive horizon')
     parser.add_argument('--EXPECTED_V', type=float, default=3., help='expected velocity of vehicle')
     parser.add_argument('--num_max_step', type=int, default=200, help='the max episode steps of the env')
 

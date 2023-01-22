@@ -164,8 +164,8 @@ class MultiGoalEnv(gym.Env):
 
         # add some noise
         ego_state = [0] * 6
-        ego_state[3] = ref_x + random.gauss(Para.MU_X, Para.SIGMA_X)
-        ego_state[4] = ref_y + random.gauss(Para.MU_Y, Para.SIGMA_Y)
+        ego_state[3] = ref_x + np.clip(random.gauss(Para.MU_X, Para.SIGMA_X), -5, 5)
+        ego_state[4] = ref_y + np.clip(random.gauss(Para.MU_Y, Para.SIGMA_Y), -5, 5)
         ego_state[5] = ref_phi + np.clip(random.gauss(Para.MU_PHI, Para.SIGMA_PHI), -30, 30)
         ego_state[0] = random.random() * ref_v
         ego_state[1] = 0
