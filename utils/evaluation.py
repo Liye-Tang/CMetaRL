@@ -69,6 +69,7 @@ def evaluate(args,
         total_punish_steer = 0
         total_punish_a_x = 0
         total_punish_yaw_rate = 0
+        total_constraint = 0
 
         for step_idx in range(num_steps):
 
@@ -92,12 +93,14 @@ def evaluate(args,
             mean_punish_steer = np.mean([info['scaled_punish_steer'] for info in infos])
             mean_punish_a_x = np.mean([info['scaled_punish_a_x'] for info in infos])
             mean_punish_yaw_rate = np.mean([info['scaled_punish_yaw_rate'] for info in infos])
+            mean_constraint = np.mean([info['scaled_constraint'] for info in infos])
             total_devi_p += mean_devi_p
             total_devi_v += mean_devi_v
             total_devi_phi += mean_devi_phi
             total_punish_steer += mean_punish_steer
             total_punish_a_x += mean_punish_a_x
             total_punish_yaw_rate += mean_punish_yaw_rate
+            total_constraint += mean_constraint
 
             if encoder is not None:
                 # update the hidden state
@@ -124,6 +127,7 @@ def evaluate(args,
         print("total_punish_steer:", total_punish_steer)
         print("total_punish_a_x:", total_punish_a_x)
         print("total_punish_yaw_rate:", total_punish_yaw_rate)
+        print("total_constraint:", total_constraint)
 
         # TODO: test the env initial feasiblity
         returns_avg = returns_per_episode[:, :num_episodes].mean(dim=0)

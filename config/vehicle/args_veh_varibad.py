@@ -179,6 +179,7 @@ def get_args(rest_args):
     parser.add_argument('--scale_punish_yaw_rate', type=float, default=0.1, help='None')
     parser.add_argument('--scale_punish_steer', type=float, default=1, help='None')
     parser.add_argument('--scale_punish_a_x', type=float, default=0.1, help='None')
+    parser.add_argument('--scale_constraint', type=float, default=0.1, help='None')
     parser.add_argument('--reward_shift', type=float, default=2., help='None')
     parser.add_argument('--N', type=int, default=20, help='the predictive horizon')
     parser.add_argument('--EXPECTED_V', type=float, default=3., help='expected velocity of vehicle')
