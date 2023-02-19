@@ -3,7 +3,8 @@ import numpy as np
 from math import pi, cos, sin, tan
 import matplotlib.pyplot as plt
 
-from environments.pathfollow.utils import *
+# from environments.pathfollow.utils import *
+from utils import *
 
 
 class ReferencePath(object):
@@ -235,6 +236,70 @@ class ReferencePath(object):
                                    np.array(future_n_phi, dtype=np.float32), np.array(future_n_v, dtype=np.float32)],
                                   axis=0)
         return future_n_point
+    
+    def get_point_with_dist(self, closest_point, index, vel):
+        n = 2
+        dt = 0.1
+        ds = vel * dt
+        future_n_x, future_n_y, future_n_phi, future_n_v = [], [], [], []
+        cl_x, cl_y, cl_phi, cl_v = closest_point[0], closest_point[1], closest_point[2], closest_point[3]
+
+        if index == -2:  # area 2
+            future_n_x = [cl_x + ds * i * cos(self.goal_point[2] * pi / 180) for i in range(n)]
+            future_n_y = [cl_y + ds * i * sin(self.goal_point[2] * pi / 180) for i in range(n)]
+            future_n_phi = [cl_phi] * n
+            future_n_v = [self.exp_v] * n
+        elif index == -1:  # area 0
+            future_n_x = [future_n_x] * n
+            future_n_y = [cl_y + ds * i for i in range(n)]
+            future_n_phi = [cl_phi] * n
+            future_n_v = [self.exp_v] * n
+        else:  # area 1
+            future_n_x = [cl_x]
+            future_n_y = [cl_y]
+            future_n_phi = [cl_phi]
+            future_n_v = [cl_v]
+            x, y = cl_x, cl_y
+            s = 0
+            for point_num in range(n - 1):
+                if index < len(self.ref_path[0]) - 1:
+                    s = 0
+                    while s < ds:
+                        if index >= len(self.ref_path[0]) - 1:
+                            break
+                        index += 1
+                        next_x, next_y, _, _ = self.idx2point(index)
+                        s += np.sqrt(np.square(next_x - x) + np.square(next_y - y))
+                        x, y = next_x, next_y
+                        
+                    if index < len(self.ref_path[0]) - 1:
+                        x, y, phi, v = self.idx2point(index)
+                        future_n_x.append(x)
+                        future_n_y.append(y)
+                        future_n_phi.append(phi)
+                        future_n_v.append(v)
+                    else:
+                        break
+            if index >= len(self.ref_path[0]) - 1:
+                remain_point_num = n - 1 - point_num
+                remain_dis = ds - s
+                last_x, last_y, last_phi, last_v = self.idx2point(index)
+                start_x = last_x + remain_dis * cos(last_phi * pi / 180)
+                start_y = last_y + remain_dis * sin(last_phi * pi / 180)
+                start_phi = last_phi
+                start_v = last_v
+                
+                index = -2
+                
+                for k in range(remain_point_num):
+                    future_n_x.append(start_x + ds * cos(last_phi * pi / 180) * k)
+                    future_n_y.append(start_y + ds * sin(last_phi * pi / 180) * k)
+                    future_n_phi.append(start_phi)
+                    future_n_v.append(start_v)
+                    
+        future_n_point = np.array([future_n_x[1], future_n_y[1], future_n_phi[1], vel], dtype=np.float32)
+
+        return future_n_point, index
 
     def compute_reward(self, ego_state):
         pass

@@ -63,10 +63,10 @@ class VehicleDynamics(object):
 class EnvironmentModel(object):
     def __init__(self):
         self.ego_dim = Para.EGO_DIM
-        self.goal_dim = Para.GOAL_DIM
+        self.veh = 4
 
     def compute_rewards(self, obses, actions, closest_points):
-        obses_ego, obses_goal = self.split_all(obses)
+        obses_ego, obses_veh = self.split_all(obses)
         steers, a_xs = actions[:, 0], actions[:, 1]
 
         # rewards related to tracking error
@@ -81,13 +81,62 @@ class EnvironmentModel(object):
         # rewards related to action
         punish_steer = -tf.square(steers)
         punish_a_x = -tf.square(a_xs)
+        
+        
+        # veh2veh punishment
+        ego_lws = (Para.L - Para.W) / 2.
+        ego_front_points = tf.cast(obses_ego[:, 3] + ego_lws * tf.cos(obses_ego[:, 5] * np.pi / 180. + np.pi / 2),
+                                   dtype=tf.float32), \
+                           tf.cast(obses_ego[:, 4] + ego_lws * tf.sin(obses_ego[:, 5] * np.pi / 180. + np.pi / 2),
+                                   dtype=tf.float32)
+        ego_rear_points = tf.cast(obses_ego[:, 3] - ego_lws * tf.cos(obses_ego[:, 5] * np.pi / 180. + np.pi / 2),
+                                  dtype=tf.float32), \
+                          tf.cast(obses_ego[:, 4] - ego_lws * tf.sin(obses_ego[:, 5] * np.pi / 180. + np.pi / 2),
+                                  dtype=tf.float32)
 
+        veh2veh4real = tf.cast(tf.zeros_like(obses[:, 0]), dtype=tf.float32)
+        veh2veh4training = tf.cast(tf.zeros_like(obses[:, 0]), dtype=tf.float32)
+
+        vehs = obses_veh
+        veh_lw = (Para.L - Para.W) / 2.
+        veh_front_points = tf.cast(vehs[:, 0] + veh_lw * tf.cos(vehs[:, 2] * np.pi / 180. + np.pi / 2), dtype=tf.float32), \
+                            tf.cast(vehs[:, 1] + veh_lw * tf.sin(vehs[:, 2] * np.pi / 180. + np.pi / 2), dtype=tf.float32)
+        veh_rear_points = tf.cast(vehs[:, 0] - veh_lw * tf.cos(vehs[:, 2] * np.pi / 180. + np.pi / 2), dtype=tf.float32), \
+                            tf.cast(vehs[:, 1] - veh_lw * tf.sin(vehs[:, 2] * np.pi / 180. + np.pi / 2), dtype=tf.float32)
+        
+        # print(np.sqrt(np.square(obses_ego[0, 3] - obses_veh[0, 0]) + np.square(obses_ego[0, 4] - obses_veh[0, 1])))
+        # print(obses_veh[0, 0], obses_veh[0, 1])
+        # print([veh_front_points[0].numpy()[0], veh_front_points[1].numpy()[0]], 
+        #       [veh_rear_points[0].numpy()[0], veh_rear_points[1].numpy()[0]])
+        # for ego_point in [ego_front_points, ego_rear_points]:
+        #     for veh_point in [veh_front_points, veh_rear_points]:
+        #         veh2veh_dist = tf.sqrt(
+        #             tf.square(ego_point[0] - veh_point[0]) + tf.square(ego_point[1] - veh_point[1]))
+        #         veh2veh4training += tf.where(veh2veh_dist - 3.5 < 0, tf.square(veh2veh_dist - 3.5),
+        #                                         tf.cast(tf.zeros_like(obses[:, 0]), dtype=tf.float32))
+        #         veh2veh4real += tf.where(veh2veh_dist - 2.5 < 0, tf.square(veh2veh_dist - 2.5),
+        #                                     tf.cast(tf.zeros_like(obses[:, 0]), dtype=tf.float32))
+        
+        for ego_point in [ego_front_points, ego_rear_points]:
+            for veh_point in [veh_front_points, veh_rear_points]:
+                veh2veh_dist = tf.sqrt(
+                    tf.square(ego_point[0] - veh_point[0]) + tf.square(ego_point[1] - veh_point[1]))
+                veh2veh4training += tf.where(veh2veh_dist - 3.5 < 0, tf.cast(tf.ones_like(obses[:, 0]), dtype=tf.float32) * 100,
+                                                self.constraint_function(veh2veh_dist - 3.5))
+                veh2veh4real += tf.where(veh2veh_dist - 2.5 < 0, tf.cast(tf.ones_like(obses[:, 0]), dtype=tf.float32) * 100,
+                                                self.constraint_function(veh2veh_dist - 2.5))
+        
+        print(veh2veh4training)
+        
         rewards = Para.scale_devi_p * devi_p + \
                   Para.scale_devi_v * devi_v + \
                   Para.scale_devi_phi * devi_phi + \
                   Para.scale_punish_yaw_rate * punish_yaw_rate + \
                   Para.scale_punish_steer * punish_steer + \
-                  Para.scale_punish_a_x * punish_a_x + Para.reward_shift
+                  Para.scale_punish_a_x * punish_a_x - \
+                  Para.scale_constraint * veh2veh4training + \
+                  Para.reward_shift
+        print(rewards)
 
         reward_dict = dict(devi_p=devi_p,
                            devi_v=devi_v,
@@ -95,6 +144,7 @@ class EnvironmentModel(object):
                            punish_steer=punish_steer,
                            punish_a_x=punish_a_x,
                            punish_yaw_rate=punish_yaw_rate,
+                           veh2veh4training=veh2veh4training,
                            scaled_devi_p=Para.scale_devi_p * devi_p,
                            scaled_devi_v=Para.scale_devi_v * devi_v,
                            scaled_devi_phi=Para.scale_devi_phi * devi_phi,
@@ -107,6 +157,11 @@ class EnvironmentModel(object):
 
     def split_all(self, obses):
         obses_ego = obses[:, :self.ego_dim]
-        obses_goal = obses[:, self.ego_dim:self.ego_dim+self.goal_dim]
+        obses_veh = obses[:, -4:]
 
-        return obses_ego, obses_goal
+        return obses_ego, obses_veh
+    
+    def constraint_function(self, dist):
+        dist_rew = tf.math.exp(1 / (dist)) - 1
+        dist_rew = tf.where(dist_rew > 100, 100 * tf.cast(tf.ones_like(dist_rew), dtype=tf.float32), dist_rew)
+        return dist_rew

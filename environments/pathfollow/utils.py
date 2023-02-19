@@ -5,8 +5,10 @@ from matplotlib.transforms import Affine2D
 from matplotlib.patches import Wedge
 from matplotlib.collections import PatchCollection
 import math
+import sys
 
 import argparse
+sys.path.append('/home/tly/Desktop/varibad')
 from config.vehicle import args_veh_varibad
 
 
@@ -30,6 +32,7 @@ class Para:
     scale_punish_yaw_rate: float = args.scale_punish_yaw_rate  # 0.1
     scale_punish_steer: float = args.scale_punish_steer  # 1
     scale_punish_a_x: float = args.scale_punish_a_x  # 0.1
+    scale_constraint: float = 0.01
 
     reward_shift: float = args.reward_shift
 

@@ -1,14 +1,20 @@
 import gym
 import numpy as np
 from gym.utils import seeding
+import sys
+import os
 
 import matplotlib.pyplot as plt
 import random
 
 
-from environments.pathfollow.ref_path import ReferencePath
-from environments.pathfollow.dynamics_and_models import VehicleDynamics, EnvironmentModel
-from environments.pathfollow.utils import *
+# from environments.pathfollow.ref_path import ReferencePath
+# from environments.pathfollow.dynamics_and_models import VehicleDynamics, EnvironmentModel
+# from environments.pathfollow.utils import *
+
+from ref_path import ReferencePath
+from dynamics_and_models import VehicleDynamics, EnvironmentModel
+from utils import *
 
 
 class MultiGoalEnv(gym.Env):
@@ -35,7 +41,7 @@ class MultiGoalEnv(gym.Env):
         self.closest_point = None
         self.future_n_point = None
         self.area_index = None
-        self.obs_scale = [1/10, 1/10, 1/10, 1/10, 1/10, 1/180] + [1/10] * Para.N + [1/10] * Para.N + [1/180] * Para.N
+        self.obs_scale = [1/10, 1/10, 1/10, 1/10, 1/10, 1/180] + [1/10] * Para.N + [1/10] * Para.N + [1/180] * Para.N + [1/10, 1/10, 1/180, 1/10]
         self.task_dim = 3
 
         self.start_point = start_point
@@ -62,13 +68,17 @@ class MultiGoalEnv(gym.Env):
         reward, reward_info = self.compute_reward(self.obs, self.action, self.closest_point)
         info.update(reward_info)
         self.ego_state, ego_param = self.get_next_ego_state(self.action)
+        self.get_next_veh_state()
         self.update_obs()
-        self.done_type, self.done = self.judge_done()
+        self.done_type, self.done = self.judge_done(info)
+        if self.done_type == 'collision':
+            reward -= 100
         return self.obs * self.obs_scale, reward, self.done, info
 
     def reset(self):
         # self.generate_goal_point()
         self.generate_ego_state()
+        self.generate_veh()
         self.update_obs()
         return self.obs * self.obs_scale
 
@@ -111,8 +121,23 @@ class MultiGoalEnv(gym.Env):
         next_ego_state[0] = next_ego_state[0] if next_ego_state[0] >= 0 else 0.
         next_ego_state[-1] = deal_with_phi(next_ego_state[-1])
         return next_ego_state, next_ego_param
+    
+    def get_next_veh_state(self):
+        veh_vel = self.veh_state[-1]
+        next_veh_cl_point, index = self.ref_path.get_point_with_dist(self.veh_cl_point, self.veh_index, vel=veh_vel)
 
-    def judge_done(self):
+        next_veh_state = [0] * 4
+        next_veh_state[0] = next_veh_cl_point[0] + self.offset * np.sin(next_veh_cl_point[2] / 180 * np.pi)
+        next_veh_state[1] = next_veh_cl_point[1] - self.offset * np.cos(next_veh_cl_point[2] / 180 * np.pi)
+        next_veh_state[2] = next_veh_cl_point[2]
+        next_veh_state[3] = next_veh_cl_point[3]
+        
+        self.veh_index = index
+        self.veh_cl_point = next_veh_cl_point
+        
+        self.veh_state = np.array(next_veh_state, dtype=np.float32)
+
+    def judge_done(self, info):
         """
         :return:
          1: good done: enter area 2
@@ -123,6 +148,8 @@ class MultiGoalEnv(gym.Env):
             return 'deviate too much', 1
         # elif self.area_index == 2:
         #     return 'good done', 2
+        elif info['veh2veh4training'] >= 100:
+            return 'collision', 2
         else:
             return 'not_done', 0
 
@@ -137,8 +164,12 @@ class MultiGoalEnv(gym.Env):
         rela_ref_x, rela_ref_y, rela_ref_phi = \
             shift_and_rotate_coordination(self.future_n_point[0], self.future_n_point[1], self.future_n_point[2],
                                           self.future_n_point[0][0], self.future_n_point[1][0], self.future_n_point[2][0] - 90)
+        rela_veh_x, rela_veh_y, rela_veh_phi = \
+            shift_and_rotate_coordination(self.veh_state[0], self.veh_state[1], self.veh_state[2],
+                                          self.future_n_point[0][0], self.future_n_point[1][0], self.future_n_point[2][0] - 90)
+        rela_veh_state = [rela_veh_x, rela_veh_y, rela_veh_phi, self.veh_state[-1]]
         self.obs = np.concatenate(
-            (rela_ego_state, rela_ref_x, rela_ref_y, rela_ref_phi),
+            (rela_ego_state, rela_ref_x, rela_ref_y, rela_ref_phi, rela_veh_state),
             axis=0)
 
     def _deviate_too_much(self):
@@ -157,10 +188,10 @@ class MultiGoalEnv(gym.Env):
         ) > Para.POS_TOLERANCE or abs(self.ego_state[-1] - self.closest_point[2]) > Para.ANGLE_TOLERANCE else False
 
     def generate_ego_state(self):
-        whole_ref_len = len(self.ref_path.whole_path[0])
-        random_index = int(random.uniform(150, whole_ref_len))
+        ref_len = len(self.ref_path.ref_path[0])
+        self.random_index = int(random.uniform(150, ref_len - 300))
         # random_index = int(random.uniform(150, 200))
-        ref_x, ref_y, ref_phi, ref_v = self.ref_path.idx2whole(random_index)
+        ref_x, ref_y, ref_phi, ref_v = self.ref_path.idx2point(self.random_index)
 
         # add some noise
         ego_state = [0] * 6
@@ -172,6 +203,22 @@ class MultiGoalEnv(gym.Env):
         ego_state[2] = random.random() * 0.2 - 0.1
 
         self.ego_state = np.array(ego_state, dtype=np.float32)
+        
+    def generate_veh(self):
+        # random_index = int(random.uniform(150, 200))
+        self.veh_index = self.random_index + int(random.uniform(50, 300))
+        self.veh_cl_point = self.ref_path.idx2point(self.veh_index)
+        ref_x, ref_y, ref_phi, ref_v = self.ref_path.idx2point(self.veh_index)
+        
+        self.offset = random.uniform(-5, 5)
+        
+        veh_state = [0] * 4
+        veh_state[0] = ref_x + self.offset * np.sin(ref_phi / 180 * np.pi)
+        veh_state[1] = ref_y - self.offset * np.cos(ref_phi / 180 * np.pi)
+        veh_state[2] = ref_phi
+        veh_state[3] = random.random() * (ref_v - 2) + 2 
+        
+        self.veh_state = np.array(veh_state, dtype=np.float32)
 
     def convert_to_rela(self, ego_state):
         ego_vx, _, _, ego_x, ego_y, ego_phi = ego_state
@@ -194,10 +241,26 @@ class MultiGoalEnv(gym.Env):
 
             # plot ref path
             self.ref_path.plot_path(ax)
+            
+            veh_lw = (Para.L - Para.W) / 2.
+            ax.scatter(self.veh_state[0] + veh_lw * np.cos(self.veh_state[2] * np.pi / 180), 
+                       self.veh_state[1] + veh_lw * np.sin(self.veh_state[2] * np.pi / 180))
+            ax.scatter(self.veh_state[0] - veh_lw * np.cos(self.veh_state[2] * np.pi / 180), 
+                       self.veh_state[1] - veh_lw * np.sin(self.veh_state[2] * np.pi / 180))
+            
+            # print(np.sqrt(np.square(self.ego_state[3] - self.veh_state[0]) + 
+            #               np.square(self.ego_state[4] - self.veh_state[1])))
+            
+            ax.scatter(self.veh_cl_point[0], self.veh_cl_point[1])
 
             # plot ego vehicle
             patches.append(
                 draw_rotate_rec(self.ego_state[-3], self.ego_state[-2], self.ego_state[-1], Para.L, Para.W)
+            )
+            
+            # plot sur vehicle
+            patches.append(
+                draw_rotate_rec(self.veh_state[0], self.veh_state[1], self.veh_state[2], Para.L, Para.W)
             )
 
             # plot the close points
@@ -216,7 +279,7 @@ def test():
     env_model = EnvironmentModel()
     i = 0
     while i < 1000:
-        for j in range(1000):
+        for j in range(100):
             i += 1
             action = np.array([0, 0.6 + random.random() * 0.8], dtype=np.float32)  # random.rand(1)*0.1 - 0.05
             obs, reward, done, info = env.step(action)
