@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 import random
 
 
-# from environments.pathfollow.ref_path import ReferencePath
-# from environments.pathfollow.dynamics_and_models import VehicleDynamics, EnvironmentModel
-# from environments.pathfollow.utils import *
+from environments.pathfollow.ref_path import ReferencePath
+from environments.pathfollow.dynamics_and_models import VehicleDynamics, EnvironmentModel
+from environments.pathfollow.utils import *
 
-from ref_path import ReferencePath
-from dynamics_and_models import VehicleDynamics, EnvironmentModel
-from utils import *
+# from ref_path import ReferencePath
+# from dynamics_and_models import VehicleDynamics, EnvironmentModel
+# from utils import *
 
 
 class MultiGoalEnv(gym.Env):
@@ -24,10 +24,10 @@ class MultiGoalEnv(gym.Env):
                  ):
         self.observation_space = gym.spaces.Box(
             low=np.array(
-                [-np.inf] * (Para.EGO_DIM + Para.N * 3)
+                [-np.inf] * (Para.EGO_DIM + Para.N * 3 + 4)
             ),
             high=np.array(
-                [np.inf] * (Para.EGO_DIM + Para.N * 3)
+                [np.inf] * (Para.EGO_DIM + Para.N * 3 + 4)
             ),
             dtype=np.float32)   # TODO
         self.action_space = gym.spaces.Box(low=np.array([-1, -1]),

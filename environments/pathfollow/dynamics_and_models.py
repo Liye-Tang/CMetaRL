@@ -126,7 +126,6 @@ class EnvironmentModel(object):
                 veh2veh4real += tf.where(veh2veh_dist - 2.5 < 0, tf.cast(tf.ones_like(obses[:, 0]), dtype=tf.float32) * 100,
                                                 self.constraint_function(veh2veh_dist - 2.5))
         
-        print(veh2veh4training)
         
         rewards = Para.scale_devi_p * devi_p + \
                   Para.scale_devi_v * devi_v + \
@@ -136,7 +135,6 @@ class EnvironmentModel(object):
                   Para.scale_punish_a_x * punish_a_x - \
                   Para.scale_constraint * veh2veh4training + \
                   Para.reward_shift
-        print(rewards)
 
         reward_dict = dict(devi_p=devi_p,
                            devi_v=devi_v,

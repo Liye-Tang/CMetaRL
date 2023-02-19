@@ -8,7 +8,6 @@ import math
 import sys
 
 import argparse
-sys.path.append('/home/tly/Desktop/varibad')
 from config.vehicle import args_veh_varibad
 
 

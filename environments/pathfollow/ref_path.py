@@ -3,8 +3,8 @@ import numpy as np
 from math import pi, cos, sin, tan
 import matplotlib.pyplot as plt
 
-# from environments.pathfollow.utils import *
-from utils import *
+from environments.pathfollow.utils import *
+# from utils import *
 
 
 class ReferencePath(object):
