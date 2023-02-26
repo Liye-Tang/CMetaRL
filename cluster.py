@@ -65,8 +65,8 @@ class Cluster:
         
         latent = latent_mean.reshape(-1, self.latent_dim)
 
-        embedding = F.normalize(latent, dim=1, p=2)
-        scores = self.proto_proj(embedding)
+        # embedding = F.normalize(latent, dim=1, p=2)
+        scores = self.proto_proj(latent)
         q = self.sinkhorn(scores)
         
         cluster_loss = 0
@@ -84,6 +84,9 @@ class Cluster:
 
             # update
             self.optimiser_cluster.step()
+        
+        if self.get_iter_idx() % 100 == 0:
+            print(self.proto_proj.weight.data.clone())
         
         self.log(cluster_loss)
     

@@ -273,7 +273,8 @@ class VaribadVAE:
         if not self.args.disable_stochasticity_in_latent:
             latent_samples = self.encoder._sample_gaussian(latent_mean, latent_logvar)
         else:
-            latent_samples = torch.cat((latent_mean, latent_logvar), dim=-1)
+            latent_samples = latent_mean
+            # latent_samples = torch.cat((latent_mean, latent_logvar), dim=-1)
 
         num_elbos = latent_samples.shape[0]
         num_decodes = vae_prev_obs.shape[0]

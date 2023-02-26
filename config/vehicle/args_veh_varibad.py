@@ -97,7 +97,7 @@ def get_args(rest_args):
     parser.add_argument('--num_vae_updates', type=int, default=5,
                         help='how many VAE update steps to take per meta-iteration')
     parser.add_argument('--pretrain_len', type=int, default=0, help='for how many updates to pre-train the VAE')
-    parser.add_argument('--kl_weight', type=float, default=1.0, help='weight for the KL term')
+    parser.add_argument('--kl_weight', type=float, default=0.0, help='weight for the KL term')
 
     parser.add_argument('--split_batches_by_task', type=boolean_argument, default=False,
                         help='split batches up by task (to save memory or if tasks are of different length)')
@@ -142,11 +142,11 @@ def get_args(rest_args):
 
     # --- CLUSTER TRAINING ---
     parser.add_argument('--num_prototypes', type=int, default=10, help='the num of the classes: K')
-    parser.add_argument('--temperature', type=float, default=1.0, help='weight for task loss')
+    parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=0.5)
     parser.add_argument('--epsilon', type=float, default=0.1, help='the sinkhorn param')
-    parser.add_argument('--lr_cluster', type=float, default=0.0001, help='the sinkhorn param')
-    parser.add_argument('--cluster_batch_num_trajs', type=int, default=50, help='num_traj for the cluster')
+    parser.add_argument('--lr_cluster', type=float, default=0.01, help='the sinkhorn param')
+    parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=10, help='')
     parser.add_argument('--num_cluster_updates', type=int, default=5, help='')
 
