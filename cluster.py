@@ -10,21 +10,23 @@ import torch.backends.cudnn as cudnn
 import torch.optim
 import torch.nn.functional as F
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class Cluster:
-    def __init__(self, args, encoder, logger, get_iter_index):
+    def __init__(self, args, encoder, rollout_storage, logger, get_iter_idx):
         self.args = args
         self.latent_dim = self.args.latent_dim  # the input dim: D
         self.num_prototypes = self.args.num_prototypes  # the number of the prototypes: K
         self.encoder = encoder
         self.logger = logger
+        self.rollout_storage = rollout_storage
 
         # warmup_lr_schedule = np.linspace(args.start_warmup, args.base_lr, len(train_loader) * args.warmup_epochs)
         # cosine_lr_schedule = np.array([args.final_lr + 0.5 * (args.base_lr - args.final_lr) * (1 + \
         #                     math.cos(math.pi * t / (len(train_loader) * (args.epochs - args.warmup_epochs)))) for t in iters])
         # self.lr_schedule = np.concatenate((warmup_lr_schedule, cosine_lr_schedule))
         self.iters = 0
-        self.get_iter_index = get_iter_index
+        self.get_iter_idx = get_iter_idx
 
 
         # self.projection_head = nn.Sequential(
@@ -36,15 +38,16 @@ class Cluster:
 
         # protomatrix C = [c1, c2, ..., ck]
         # the weight matrix is C [D, K]
-        self.proto_proj = nn.Linear(in_features=self.latent_dim, out_features=self.num_prototypes, bias=False)
+        self.proto_proj = nn.Linear(in_features=self.latent_dim, out_features=self.num_prototypes, bias=False).to(device)
 
-        self.optimizer_cluster = torch.optim.Adam([*self.prototypes.weight(), *self.encoder.parameters()], lr=self.args.lr_cluster)
+        self.optimiser_cluster = torch.optim.Adam([*self.proto_proj.parameters(), *self.encoder.parameters()], lr=self.args.lr_cluster)
 
     def compute_cluster_loss(self, update=False):
 
-        w = self.proto_proj.weight.data.clone()
-        w = F.normalize(w, dim=1, p=2)
-        self.proto_proj.weight.copy_(w)
+        with torch.no_grad():
+            w = self.proto_proj.weight.data.clone()
+            w = F.normalize(w, dim=1, p=2)
+            self.proto_proj.weight.copy_(w)
 
         # get a mini-batch
         vae_prev_obs, vae_next_obs, vae_actions, vae_rewards, vae_tasks, \
@@ -63,7 +66,7 @@ class Cluster:
         latent = latent_mean.reshape(-1, self.latent_dim)
 
         embedding = F.normalize(latent, dim=1, p=2)
-        scores = torch.mm(self.proto_proj(embedding))
+        scores = self.proto_proj(embedding)
         q = self.sinkhorn(scores)
         
         cluster_loss = 0
@@ -75,12 +78,14 @@ class Cluster:
 
             # clip gradients
             if self.args.proto_max_grad_norm is not None:
-                nn.utils.clip_grad_norm_(self.prototypes.weight(), self.args.proto_max_grad_norm)
+                nn.utils.clip_grad_norm_(self.proto_proj.parameters(), self.args.proto_max_grad_norm)
             if self.args.encoder_max_grad_norm is not None:
-                nn.utils.clip_grad_norm_(self.encoder_params, self.args.encoder_max_grad_norm)
+                nn.utils.clip_grad_norm_(self.encoder.parameters(), self.args.encoder_max_grad_norm)
 
             # update
             self.optimiser_cluster.step()
+        
+        self.log(cluster_loss)
     
     @torch.no_grad()
     def sinkhorn(self, scores):

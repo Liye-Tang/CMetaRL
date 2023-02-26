@@ -179,7 +179,7 @@ class PPO:
                 compute_vae_loss(update=True)
         
         if self.optimiser_cluster is not None:
-            for _ in range(self.args.num_vae_updates):
+            for _ in range(self.args.num_cluster_updates):
                 compute_cluster_loss(update=True)
 
         if self.lr_scheduler_policy is not None:

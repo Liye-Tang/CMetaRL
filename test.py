@@ -9,8 +9,8 @@ import argparse
 from environments.parallel_envs import make_vec_envs, make_env
 from utils import helpers as utl
 
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = 'cpu'
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = 'cpu'
 
 
 def test_policy(load_path, iter):
