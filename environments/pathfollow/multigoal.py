@@ -63,7 +63,7 @@ class MultiGoalEnv(gym.Env):
         reward, reward_info = self.compute_reward(self.obs, self.action, self.closest_point)
         info.update(reward_info)
         # self.ego_state, ego_state_param = self.ego_dynamic.prediction(self.ego_state, action, Para.FREQUENCY)
-        self.ego_state, ego_param = self.get_next_ego_state(action)
+        self.ego_state, ego_param = self.get_next_ego_state(self.action)
         self.update_obs()
         # info.update({'future_n_point': self.future_n_point, 'closest_point': self.closest_point})
         self.done_type, self.done = self.judge_done()
@@ -72,6 +72,7 @@ class MultiGoalEnv(gym.Env):
     def reset(self):
         # self.generate_goal_point()
         self.generate_ego_state()
+        # print(self.ego_state)
         self.update_obs()
         return self.obs * self.obs_scale
 
@@ -169,6 +170,8 @@ class MultiGoalEnv(gym.Env):
         ego_state = [0] * 6
         ego_state[3] = ref_x + random.gauss(Para.MU_X, Para.SIGMA_X)
         ego_state[4] = ref_y + random.gauss(Para.MU_Y, Para.SIGMA_Y)
+        # ego_state[3] = ref_x - 4
+        # ego_state[4] = ref_y
         ego_state[5] = ref_phi + np.clip(random.gauss(Para.MU_PHI, Para.SIGMA_PHI), -30, 30)
         ego_state[0] = random.random() * ref_v
         ego_state[1] = 0
@@ -177,14 +180,17 @@ class MultiGoalEnv(gym.Env):
         self.ego_state = np.array(ego_state, dtype=np.float32)
 
     def convert_to_rela(self, ego_state):
-        _, _, _, ego_x, ego_y, ego_phi = ego_state
+        ego_vx, _, _, ego_x, ego_y, ego_phi = ego_state
+        rela_vx = ego_vx - self.closest_point[3]
         rela_x, rela_y, rela_phi = shift_and_rotate_coordination(ego_x, ego_y, ego_phi,
                                                                  self.closest_point[0],
                                                                  self.closest_point[1],
                                                                  self.closest_point[2] - 90,)
-        return np.concatenate((ego_state[:3],
+        return np.concatenate(([rela_vx], ego_state[1: 3],
                                [rela_x, rela_y, rela_phi]),
                               axis=0)
+
+        # return np.concatenate((ego_state[:3], [rela_x, rela_y, rela_phi]), axis=0)
 
     def render(self, mode="human"):
         if mode == 'human':

@@ -15,7 +15,7 @@ class Para:
     N = 20
 
     # reward hparam
-    scale_devi_p: float = 0.1
+    scale_devi_p: float = 0.5
     scale_devi_v: float = 0.01
     scale_devi_phi: float = 0.8
     scale_punish_yaw_rate: float = 0.1  # 0.1
@@ -25,7 +25,7 @@ class Para:
     # action scale factor
     ACC_SCALE: float = 3.0
     ACC_SHIFT: float = 1.0
-    STEER_SCALE: float = 0.3
+    STEER_SCALE: float = 0.5
     STEER_SHIFT: float = 0
 
     # done
@@ -48,7 +48,7 @@ class Para:
     METER_POINT_NUM: int = 30
     START_LENGTH: float = 5.
     END_LENGTH: float = 5.
-    EXPECTED_V = 3
+    EXPECTED_V = 3.
 
     # initial obs noise
     MU_X: float = 0

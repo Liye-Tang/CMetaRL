@@ -9,8 +9,8 @@ import argparse
 from environments.parallel_envs import make_vec_envs, make_env
 from utils import helpers as utl
 
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = 'cpu'
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = 'cpu'
 
 
 def test_policy(load_path, iter):
@@ -29,15 +29,15 @@ def test_policy(load_path, iter):
         env_name = args.test_env_name
 
     test_env = gym.make(env_name)
-    num_steps = 200
-    # policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)))
-    policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)), map_location=torch.device('cpu'))
-    # encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)))
-    # encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)),  map_location=torch.device('cpu'))
+    num_steps = 1
+    policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)))
+    # policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)), map_location=torch.device('cpu'))
+    # encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)), map_location=torch.device('cpu'))
     encoder = None
 
     # reset environment
     state = test_env.reset()
+    print(state[0])
     state = torch.from_numpy(state).float().to(device).unsqueeze(0)
     # state = np.concatenate([state, [0.0]], axis=0)
 
@@ -64,9 +64,7 @@ def test_policy(load_path, iter):
                                             deterministic=True)
 
         # observe reward and next obs
-        state, rew_raw, done, info = test_env.step(action.cpu().numpy()[0])
-        print(state)
-        # print(action.cpu().numpy()[0], state[0])
+        state, rew_raw, done, info = test_env.step(np.array([0, 0]))
         ret += rew_raw
         devi_p += info['scaled_devi_p']
         devi_v += info['scaled_devi_v']
@@ -76,7 +74,7 @@ def test_policy(load_path, iter):
         punish_yaw_rate += info['scaled_punish_yaw_rate']
         
         state = torch.from_numpy(state).float().to(device).unsqueeze(0)
-        rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device).unsqueeze(0)
+        rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device)
         # done = torch.from_numpy(done).float().to(device)
         # state = np.concatenate([state, 0.0])
         test_env.render()
@@ -97,13 +95,13 @@ def test_policy(load_path, iter):
             break
     
     # print(test_return, devi_p, devi_v, devi_phi)
-    print(ret)
+    # print(ret)
     # print('-' * 100)
 
 
 def main():
-    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__11:01_05:50:13"
-    iter = 12499
+    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__29:12_00:09:45"
+    iter = 499
     for i in range(20):
         test_policy(load_path, iter)
 

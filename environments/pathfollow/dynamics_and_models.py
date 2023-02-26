@@ -7,13 +7,13 @@ from environments.pathfollow.ref_path import ReferencePath
 
 class VehicleDynamics(object):
     def __init__(self, ):
-        self.vehicle_params = dict(C_f=-155495.0,  # front wheel cornering stiffness [N/rad]
-                                   C_r=-155495.0,  # rear wheel cornering stiffness [N/rad]
-                                   a=1.19,  # distance from CG to front axle [m]
-                                   b=1.46,  # distance from CG to rear axle [m]
-                                   mass=1520.,  # mass [kg]
-                                   I_z=2642.,  # Polar moment of inertia at CG [kg*m^2]
-                                   miu=0.8,  # tire-road friction coefficient
+        self.vehicle_params = dict(C_f=-160000,  # front wheel cornering stiffness [N/rad]
+                                   C_r=-160000,  # rear wheel cornering stiffness [N/rad]
+                                   a=1.1,  # distance from CG to front axle [m]
+                                   b=1.2,  # distance from CG to rear axle [m]
+                                   mass=2120,  # mass [kg]
+                                   I_z=2260,  # Polar moment of inertia at CG [kg*m^2]
+                                   miu=1.0,  # tire-road friction coefficient
                                    g=9.81,  # acceleration of gravity [m/s^2]
                                    )
         a, b, mass, g = self.vehicle_params['a'], self.vehicle_params['b'], \
@@ -73,7 +73,7 @@ class EnvironmentModel(object):
         devi_p = -tf.cast(tf.square(obses_ego[:, 3]), tf.float32)
         devi_phi = -tf.cast(tf.square((obses_ego[:, 5]) * math.pi / 180), tf.float32)
 
-        devi_v = -tf.cast(tf.square((obses_ego[:, 0] - closest_points[:, 3])), tf.float32)
+        devi_v = -tf.cast(tf.square((obses_ego[:, 0])), tf.float32)
 
         # rewards related to ego stability
         punish_yaw_rate = -tf.cast(tf.square(obses_ego[:, 2]), tf.float32)
