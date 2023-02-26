@@ -37,6 +37,7 @@ class Para:
     ACC_SCALE: float = 3.0
     ACC_SHIFT: float = 1.0
     STEER_SCALE: float = 0.5
+    STEER_SCALE: float = 0.5
     STEER_SHIFT: float = 0
 
     # done

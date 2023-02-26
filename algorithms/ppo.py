@@ -16,6 +16,7 @@ class PPO:
                  policy_anneal_lr,
                  train_steps,
                  optimiser_vae=None,
+                 optimiser_cluster=None,
                  lr=None,
                  clip_param=0.2,
                  ppo_epoch=5,
@@ -45,6 +46,7 @@ class PPO:
         elif policy_optimiser == 'rmsprop':
             self.optimiser = optim.RMSprop(actor_critic.parameters(), lr=lr, eps=eps, alpha=0.99)
         self.optimiser_vae = optimiser_vae
+        self.optimiser_cluster = optimiser_cluster
 
         self.lr_scheduler_policy = None
         self.lr_scheduler_encoder = None
@@ -58,7 +60,8 @@ class PPO:
                policy_storage,
                encoder=None,  # variBAD encoder
                rlloss_through_encoder=False,  # whether or not to backprop RL loss through encoder
-               compute_vae_loss=None  # function that can compute the VAE loss
+               compute_vae_loss=None,  # function that can compute the VAE loss
+               compute_cluster_loss=None,  # function that can compute the cluster loss
                ):
 
         # -- get action values --
@@ -174,6 +177,10 @@ class PPO:
         if (not rlloss_through_encoder) and (self.optimiser_vae is not None):
             for _ in range(self.args.num_vae_updates):
                 compute_vae_loss(update=True)
+        
+        if self.optimiser_cluster is not None:
+            for _ in range(self.args.num_cluster_updates):
+                compute_cluster_loss(update=True)
 
         if self.lr_scheduler_policy is not None:
             self.lr_scheduler_policy.step()

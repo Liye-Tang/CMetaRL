@@ -10,6 +10,7 @@ from environments.parallel_envs import make_vec_envs, make_env
 from utils import helpers as utl
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = 'cpu'
 
 
 def test_policy(load_path, iter):
@@ -28,9 +29,11 @@ def test_policy(load_path, iter):
         env_name = args.test_env_name
 
     test_env = gym.make(env_name)
-    num_steps = 50
-    policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)))
+    num_steps = 200
+    # policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)))
+    policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)), map_location=torch.device('cpu'))
     # encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)))
+    # encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)),  map_location=torch.device('cpu'))
     encoder = None
 
     # reset environment
@@ -44,7 +47,8 @@ def test_policy(load_path, iter):
     else:
         latent_sample = latent_mean = latent_logvar = hidden_state = None
 
-    # test_return, devi_p, devi_v, devi_phi = 0, 0, 0, 0
+    ret, devi_p, devi_v, devi_phi = 0, 0, 0, 0
+    punish_steer, punish_a_x, punish_yaw_rate = 0, 0, 0
 
     for step_idx in range(num_steps):
 
@@ -62,20 +66,21 @@ def test_policy(load_path, iter):
         # observe reward and next obs
         print(state[0][0])
         state, rew_raw, done, info = test_env.step(action.cpu().numpy()[0])
-        print(action.cpu().numpy()[0])
-        # ret += rew_raw
-        # devi_p += info['scaled_devi_p']
-        # devi_v += info['scaled_devi_v']
-        # devi_phi += info['scaled_devi_phi']
-        # punish_steer += info['scaled_punish_steer']
-        # punish_a_x += info['scaled_punish_a_x']
-        # punish_yaw_rate += info['scaled_punish_yaw_rate']
+        print(state)
+        # print(action.cpu().numpy()[0], state[0])
+        ret += rew_raw
+        devi_p += info['scaled_devi_p']
+        devi_v += info['scaled_devi_v']
+        devi_phi += info['scaled_devi_phi']
+        punish_steer += info['scaled_punish_steer']
+        punish_a_x += info['scaled_punish_a_x']
+        punish_yaw_rate += info['scaled_punish_yaw_rate']
         
         state = torch.from_numpy(state).float().to(device).unsqueeze(0)
-        rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device)
+        rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device).unsqueeze(0)
         # done = torch.from_numpy(done).float().to(device)
         # state = np.concatenate([state, 0.0])
-        # test_env.render()
+        test_env.render()
 
         if encoder is not None:
             # update the hidden state
@@ -93,13 +98,13 @@ def test_policy(load_path, iter):
             break
     
     # print(test_return, devi_p, devi_v, devi_phi)
-    # print(test_return)
+    print(ret)
     # print('-' * 100)
 
 
 def main():
-    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__10:01_00:13:36"
-    iter = 2999
+    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__11:01_05:50:13"
+    iter = 12499
     for i in range(20):
         test_policy(load_path, iter)
 

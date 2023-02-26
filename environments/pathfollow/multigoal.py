@@ -69,6 +69,7 @@ class MultiGoalEnv(gym.Env):
     def reset(self):
         # self.generate_goal_point()
         self.generate_ego_state()
+        # print(self.ego_state)
         self.update_obs()
         return self.obs * self.obs_scale
 
@@ -183,6 +184,8 @@ class MultiGoalEnv(gym.Env):
         return np.concatenate(([rela_vx], ego_state[1: 3],
                                [rela_x, rela_y, rela_phi]),
                               axis=0)
+
+        # return np.concatenate((ego_state[:3], [rela_x, rela_y, rela_phi]), axis=0)
 
     def render(self, mode="human"):
         if mode == 'human':

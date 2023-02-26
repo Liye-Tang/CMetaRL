@@ -14,6 +14,7 @@ from utils import evaluation as utl_eval
 from utils import helpers as utl
 from utils.tb_logger import TBLogger
 from vae import VaribadVAE
+from cluster import Cluster
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -80,6 +81,7 @@ class MetaLearner:
 
         # initialise VAE and policy
         self.vae = VaribadVAE(self.args, self.logger, lambda: self.iter_idx)
+        self.cluster = Cluster(self.args, self.vae.encoder, self.vae.rollout_storage, self.logger, lambda: self.iter_idx)
         self.policy_storage = self.initialise_policy_storage()
         self.policy = self.initialise_policy()
 
@@ -150,6 +152,7 @@ class MetaLearner:
                 use_clipped_value_loss=self.args.ppo_use_clipped_value_loss,
                 clip_param=self.args.ppo_clip_param,
                 optimiser_vae=self.vae.optimiser_vae,
+                optimiser_cluster=self.cluster.optimiser_cluster,
             )
         else:
             raise NotImplementedError
@@ -351,7 +354,8 @@ class MetaLearner:
                 policy_storage=self.policy_storage,
                 encoder=self.vae.encoder,
                 rlloss_through_encoder=self.args.rlloss_through_encoder,
-                compute_vae_loss=self.vae.compute_vae_loss)
+                compute_vae_loss=self.vae.compute_vae_loss,
+                compute_cluster_loss=self.cluster.compute_cluster_loss)
         else:
             policy_train_stats = 0, 0, 0, 0
 
