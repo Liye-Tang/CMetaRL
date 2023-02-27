@@ -78,7 +78,7 @@ def get_args(rest_args):
     parser.add_argument('--lr_vae', type=float, default=0.00001)
     parser.add_argument('--size_vae_buffer', type=int, default=10000,
                         help='how many trajectories (!) to keep in VAE buffer')
-    parser.add_argument('--precollect_len', type=int, default=10000,
+    parser.add_argument('--precollect_len', type=int, default=100000,
                         help='how many frames to pre-collect before training begins (useful to fill VAE buffer)')
     parser.add_argument('--vae_buffer_add_thresh', type=float, default=1,
                         help='probability of adding a new trajectory to buffer')
@@ -111,7 +111,7 @@ def get_args(rest_args):
     parser.add_argument('--encoder_layers_before_gru', nargs='+', type=int, default=[128, 128])
     parser.add_argument('--encoder_gru_hidden_size', type=int, default=256, help='dimensionality of RNN hidden state')
     parser.add_argument('--encoder_layers_after_gru', nargs='+', type=int, default=[128, 128])
-    parser.add_argument('--latent_dim', type=int, default=3, help='dimensionality of latent space')
+    parser.add_argument('--latent_dim', type=int, default=5, help='dimensionality of latent space')
 
     # - decoder: rewards
     parser.add_argument('--decode_reward', type=boolean_argument, default=False, help='use reward decoder')
@@ -143,12 +143,12 @@ def get_args(rest_args):
     # --- CLUSTER TRAINING ---
     parser.add_argument('--num_prototypes', type=int, default=10, help='the num of the classes: K')
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
-    parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=0.5)
+    parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.1, help='the sinkhorn param')
-    parser.add_argument('--lr_cluster', type=float, default=0.01, help='the sinkhorn param')
-    parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
+    parser.add_argument('--lr_cluster', type=float, default=0.00001, help='the sinkhorn param')
+    parser.add_argument('--cluster_batch_num_trajs', type=int, default=100, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=10, help='')
-    parser.add_argument('--num_cluster_updates', type=int, default=5, help='')
+    parser.add_argument('--num_cluster_updates', type=int, default=3, help='')
 
 
 
@@ -159,7 +159,7 @@ def get_args(rest_args):
                         help='train without decoder')
     parser.add_argument('--disable_stochasticity_in_latent', type=boolean_argument, default=False,
                         help='use auto-encoder (non-variational)')
-    parser.add_argument('--disable_kl_term', type=boolean_argument, default=False,
+    parser.add_argument('--disable_kl_term', type=boolean_argument, default=True,
                         help='dont use the KL regularising loss term')
     parser.add_argument('--decode_only_past', type=boolean_argument, default=False,
                         help='only decoder past observations, not the future')

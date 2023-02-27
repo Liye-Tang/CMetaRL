@@ -59,14 +59,14 @@ class Cluster:
                                                         states=vae_next_obs,
                                                         rewards=vae_rewards,
                                                         hidden_state=None,
-                                                        return_prior=True,
+                                                        return_prior=False,
                                                         detach_every=self.args.tbptt_stepsize if hasattr(self.args, 'tbptt_stepsize') else None,
                                                         )
-        
+        latent_mean = latent_mean[5:]
         latent = latent_mean.reshape(-1, self.latent_dim)
 
-        # embedding = F.normalize(latent, dim=1, p=2)
-        scores = self.proto_proj(latent)
+        embedding = F.normalize(latent, dim=1, p=2)
+        scores = self.proto_proj(embedding)
         q = self.sinkhorn(scores)
         
         cluster_loss = 0

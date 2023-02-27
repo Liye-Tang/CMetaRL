@@ -181,5 +181,4 @@ class RNNEncoder(nn.Module):
         if latent_mean.shape[0] == 1:
             latent_sample, latent_mean, latent_logvar = latent_sample[0], latent_mean[0], latent_logvar[0]
 
-        latent_mean = F.normalize(latent_mean, dim=-1, p=2)
         return latent_sample, latent_mean, latent_logvar, output
