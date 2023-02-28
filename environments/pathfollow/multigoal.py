@@ -110,7 +110,7 @@ class MultiGoalEnv(gym.Env):
         next_ego_states, next_ego_params = self.ego_dynamic.prediction(ego_states, actions, Para.FREQUENCY)
         next_ego_state, next_ego_param = next_ego_states.numpy()[0], next_ego_params.numpy()[0]
         next_ego_state[0] = next_ego_state[0] if next_ego_state[0] >= 0 else 0.
-        next_ego_state[-1] = deal_with_phi(next_ego_state[-1])
+        # next_ego_state[-1] = deal_with_phi(next_ego_state[-1])
         return next_ego_state, next_ego_param
 
     def judge_done(self):

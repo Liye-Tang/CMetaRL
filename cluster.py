@@ -39,7 +39,8 @@ class Cluster:
         # protomatrix C = [c1, c2, ..., ck]
         # the weight matrix is C [D, K]
         self.proto_proj = nn.Linear(in_features=self.latent_dim, out_features=self.num_prototypes, bias=False).to(device)
-
+        # self.optimiser_proto = torch.optim.Adam([*self.proto_proj.parameters()], lr=self.args.lr_proto)
+        # self.optimiser_cluster = torch.optim.Adam([*self.encoder.parameters()], lr=self.args.lr_cluster)
         self.optimiser_cluster = torch.optim.Adam([*self.proto_proj.parameters(), *self.encoder.parameters()], lr=self.args.lr_cluster)
 
     def compute_cluster_loss(self, update=False):

@@ -29,6 +29,7 @@ class Attention(nn.Module):
         # self.proj_drop = nn.Dropout(proj_drop)
 
     def forward(self, x):
+        # B is the batch_size, N is the number of patches, and C is number of chanels
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv.unbind(0)  # make torchscript happy (cannot use tensor as tuple)
@@ -71,40 +72,28 @@ class VisionTransformer(nn.Module):
         - https://arxiv.org/abs/2012.12877
     """
 
-    def __init__(self, num_classes=1000, num_state_patches=4, num_tokens=10, embed_dim=6*64, depth=12,
-                 num_heads=6, mlp_ratio=4., qkv_bias=True, representation_size=None, distilled=False,
-                 norm_layer=None,
+    def __init__(self, num_input=3, num_tokens=10, embed_dim=6*64, depth=12,
+                 mlp_ratio=4., qkv_bias=True, representation_size=None, distilled=False,
+                 norm_layer=None, action_dim=None
                  act_layer=None, weight_init=''):
-        """
-        Args:
-            num_classes (int): number of classes for classification head
-            num_tokens (int): number of tokens
-            embed_dim (int): embedding dimension
-            depth (int): depth of transformer
-            num_heads (int): number of attention heads
-            mlp_ratio (int): ratio of mlp hidden dim to embedding dim
-            qkv_bias (bool): enable bias for qkv if True
-            representation_size (Optional[int]): enable and set representation layer (pre-logits) to this value if set
-            distilled (bool): model includes a distillation token and head as in DeiT models
-            embed_layer (nn.Module): patch embedding layer
-            norm_layer: (nn.Module): normalization layer
-            weight_init: (str): weight init scheme
-        """
         super().__init__()
-        # print("patch_size{}".format(patch_size))
-        self.num_classes = num_classes
-        self.num_features = self.embed_dim = embed_dim  # num_features for consistency with other models
+        
+        # the number of the input tokens and policy tokens
+        self.num_inputs = 3
         self.num_tokens = num_tokens
+        self.num_features = self.embed_dim = embed_dim
+        self.action_dim = action_dim
+        
+        # init the policy and the cls token
+        self.policy_tokens = [nn.Parameter(torch.zeros(1, 1, embed_dim)) for i in range(num_tokens)]
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
+        
+        # action
         norm_layer = norm_layer or partial(nn.LayerNorm, eps=1e-6)
         act_layer = act_layer or nn.GELU
 
-        self.policy_tokens = [nn.Parameter(torch.zeros(1, 1, embed_dim)) for i in range(num_tokens)]
-
-        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
-        self.pos_embed = nn.Parameter(torch.zeros(1, num_state_patches + self.num_tokens, embed_dim))
-        # self.pos_drop = nn.Dropout(p=drop_rate)
-
-        # dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
+        self.pos_embed = nn.Parameter(torch.zeros(1, self.num_inputs + self.num_tokens, embed_dim))
+        
         self.low_blocks = nn.Sequential(*[
             Block(
                 dim=embed_dim, num_heads=num_heads, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, norm_layer=norm_layer,
@@ -123,11 +112,11 @@ class VisionTransformer(nn.Module):
         else:
             self.pre_logits = nn.Identity()
 
-        # Classifier head(s)
-        self.head = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
-        self.head_dist = None
-        if distilled:
-            self.head_dist = nn.Linear(self.embed_dim, self.num_classes) if num_classes > 0 else nn.Identity()
+        # policy head(s)
+        self.action_list = [nn.Linear(self.num_features, self.action_dim) if num_classes > 0 else nn.Identity()]
+        # self.head_dist = None
+        # if distilled:
+        #     self.head_dist = nn.Linear(self.embed_dim, self.num_classes) if num_classes > 0 else nn.Identity()
 
         self.init_weights(weight_init)
 
@@ -172,6 +161,7 @@ class VisionTransformer(nn.Module):
         cls_token1 = self.cls_token1.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
         cls_token2 = self.cls_token2.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
         cls_token3 = self.cls_token3.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
+        x = self.embeding_layer(x)
         if self.dist_token is None:
             x = torch.cat((cls_token1, cls_token2, cls_token3, x), dim=1)
         else:
@@ -181,19 +171,19 @@ class VisionTransformer(nn.Module):
         x = self.norm(x)
         return self.pre_logits(x)
 
-    def forward_reconstruction(self, x):
-        x = self.patch_embed(x)
-        cls_token1 = self.cls_token1.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
-        cls_token2 = self.cls_token2.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
-        cls_token3 = self.cls_token3.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
-        if self.dist_token is None:
-            x = torch.cat((cls_token1, cls_token2, cls_token3, x), dim=1)
-        else:
-            x = torch.cat((cls_token1, cls_token2, cls_token3, self.dist_token.expand(x.shape[0], -1, -1), x), dim=1)
-        x = x + self.pos_embed
-        x = self.low_blocks(x)
-        x = self.norm(x)
-        return x[:, 3]
+    # def forward_reconstruction(self, x):
+    #     x = self.patch_embed(x)
+    #     cls_token1 = self.cls_token1.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
+    #     cls_token2 = self.cls_token2.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
+    #     cls_token3 = self.cls_token3.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
+    #     if self.dist_token is None:
+    #         x = torch.cat((cls_token1, cls_token2, cls_token3, x), dim=1)
+    #     else:
+    #         x = torch.cat((cls_token1, cls_token2, cls_token3, self.dist_token.expand(x.shape[0], -1, -1), x), dim=1)
+    #     x = x + self.pos_embed
+    #     x = self.low_blocks(x)
+    #     x = self.norm(x)
+    #     return x[:, 3]
 
     def forward(self, x):
         x = self.forward_features(x)

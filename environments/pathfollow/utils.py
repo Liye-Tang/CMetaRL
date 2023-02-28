@@ -154,8 +154,8 @@ def shift_and_rotate_coordination(orig_x, orig_y, orig_d, coordi_shift_x, coordi
 
 
 def deal_with_phi(phi):
-    while phi > 180:
+    while phi > 360:
         phi -= 360
-    while phi <= -180:
+    while phi <= 0:
         phi += 360
     return phi
