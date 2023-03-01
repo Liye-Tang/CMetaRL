@@ -109,7 +109,7 @@ class MetaLearner:
             pass_belief_to_policy=self.args.pass_belief_to_policy,
             pass_task_to_policy=self.args.pass_task_to_policy,
             dim_state=self.args.state_dim,
-            dim_latent=self.args.latent_dim * 2,
+            dim_latent=self.args.latent_dim,
             dim_belief=self.args.belief_dim,
             dim_task=self.args.task_dim,
             #
