@@ -61,7 +61,8 @@ class PPO:
                encoder=None,  # variBAD encoder
                rlloss_through_encoder=False,  # whether or not to backprop RL loss through encoder
                compute_vae_loss=None,  # function that can compute the VAE loss
-               compute_cluster_loss=None,  # function that can compute the cluster loss
+               compute_cluster_loss=None,  # function that can compute the cluster 
+               cal_policy_num=None,
                ):
 
         # -- get action values --
@@ -107,12 +108,14 @@ class PPO:
                                                          latent_mean=latent_mean_batch,
                                                          latent_logvar=latent_logvar_batch
                                                          )
+                
+                policy_num_batch = cal_policy_num(latent_batch)
 
                 # Reshape to do in a single forward pass for all steps
                 values, action_log_probs, dist_entropy = \
                     self.actor_critic.evaluate_actions(state=state_batch, latent=latent_batch,
                                                        belief=belief_batch, task=task_batch,
-                                                       action=actions_batch)
+                                                       action=actions_batch, policy_num=policy_num_batch)
 
                 ratio = torch.exp(action_log_probs -
                                   old_action_log_probs_batch)

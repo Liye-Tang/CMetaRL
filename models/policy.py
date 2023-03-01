@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 
 from utils import helpers as utl
+from models.vit4rl import VisionTransformer
 try:
     from torch.distributions import TanhTransform, TransformedDistribution
 
@@ -47,6 +48,8 @@ class Policy(nn.Module):
                  # output
                  action_space,
                  init_std,
+                 is_attn_policy=True,
+                 num_policy_tokens=20,
                  ):
         """
         The policy can get any of these as input:
@@ -135,6 +138,10 @@ class Policy(nn.Module):
             self.dist = DiagGaussian(hidden_layers[-1], num_outputs, init_std, self.args.norm_actions_pre_sampling)
         else:
             raise NotImplementedError
+        
+        # the attn action module
+        self.is_attn_policy = is_attn_policy
+        self.attn_action_layer = VisionTransformer(num_input_tokens=2, num_policy_tokens=num_policy_tokens, embed_dim=6*64, out_feature_dim=64)
 
     def get_actor_params(self):
         return [*self.actor.parameters(), *self.dist.parameters()]
@@ -142,11 +149,15 @@ class Policy(nn.Module):
     def get_critic_params(self):
         return [*self.critic.parameters(), *self.critic_linear.parameters()]
 
-    def forward_actor(self, inputs):
-        h = inputs
-        for i in range(len(self.actor_layers)):
-            h = self.actor_layers[i](h)
-            h = self.activation_function(h)
+    def forward_actor(self, inputs, policy_num):
+        if not self.is_attn_policy:
+            h = inputs
+            for i in range(len(self.actor_layers)):
+                h = self.actor_layers[i](h)
+                h = self.activation_function(h)
+        else:
+            h = inputs
+            h = self.attn_action_layer(h, policy_num)
         return h
 
     def forward_critic(self, inputs):
@@ -156,7 +167,7 @@ class Policy(nn.Module):
             h = self.activation_function(h)
         return h
 
-    def forward(self, state, latent, belief, task):
+    def forward(self, state, latent, belief, task, policy_num):
 
         # handle inputs (normalise + embed)
 
@@ -191,17 +202,23 @@ class Policy(nn.Module):
 
         # concatenate inputs
         inputs = torch.cat((state, latent, belief, task), dim=-1)
-
+        if self.is_attn_policy:
+            state = state.unsqueeze(1)
+            latent = latent.unsqueeze(1)
+            belief = belief.unsqueeze(1)
+            a_inputs = torch.cat((state, latent, belief), dim=1)
+        else:
+            a_inputs = inputs
         # forward through critic/actor part
         hidden_critic = self.forward_critic(inputs)
-        hidden_actor = self.forward_actor(inputs)
+        hidden_actor = self.forward_actor(a_inputs, policy_num)
         return self.critic_linear(hidden_critic), hidden_actor
 
-    def act(self, state, latent, belief, task, deterministic=False):
+    def act(self, state, latent, belief, task, policy_num, deterministic=False):
         """
         Returns the (raw) actions and their value.
         """
-        value, actor_features = self.forward(state=state, latent=latent, belief=belief, task=task)
+        value, actor_features = self.forward(state=state, latent=latent, belief=belief, task=task, policy_num=policy_num)
         dist = self.dist(actor_features)
         if deterministic:
             if isinstance(dist, FixedCategorical):
@@ -233,9 +250,9 @@ class Policy(nn.Module):
         if self.pass_task_to_policy and self.norm_task:
             self.task_rms.update(policy_storage.tasks[:-1])
 
-    def evaluate_actions(self, state, latent, belief, task, action):
+    def evaluate_actions(self, state, latent, belief, task, action, policy_num):
 
-        value, actor_features = self.forward(state, latent, belief, task)
+        value, actor_features = self.forward(state, latent, belief, task, policy_num)
         dist = self.dist(actor_features)
 
         if self.args.norm_actions_post_sampling:

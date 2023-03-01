@@ -122,3 +122,13 @@ class Cluster:
         if curr_iter_idx % self.args.log_interval == 0:
 
             self.logger.add('cluster_losses/cluster', cluster_loss, curr_iter_idx)
+            
+    def cal_policy_num(self, latent):
+        latent = latent.reshape(-1, self.latent_dim)
+        embedding = F.normalize(latent, dim=1, p=2)
+        scores = self.proto_proj(embedding)
+        policy_nums = cal_nums_with_scores(scores)
+        
+        
+def cal_nums_with_scores(scores):
+    return None

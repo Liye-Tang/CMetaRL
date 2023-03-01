@@ -355,7 +355,8 @@ class MetaLearner:
                 encoder=self.vae.encoder,
                 rlloss_through_encoder=self.args.rlloss_through_encoder,
                 compute_vae_loss=self.vae.compute_vae_loss,
-                compute_cluster_loss=self.cluster.compute_cluster_loss)
+                compute_cluster_loss=self.cluster.compute_cluster_loss,
+                cal_policy_num = self.cluster.cal_policy_num)
         else:
             policy_train_stats = 0, 0, 0, 0
 

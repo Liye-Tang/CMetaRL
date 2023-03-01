@@ -65,8 +65,7 @@ class Block(nn.Module):
 class VisionTransformer(nn.Module):
 
     def __init__(self, num_input_tokens=3, num_policy_tokens=10, embed_dim=6*64, depth=3,
-                 mlp_ratio=4., qkv_bias=True, representation_size=None, distilled=False,
-                 norm_layer=None, out_feature_dim=None, num_heads=6,
+                 mlp_ratio=4., qkv_bias=True, norm_layer=None, out_feature_dim=None, num_heads=6,
                  act_layer=None):
         super().__init__()
         
