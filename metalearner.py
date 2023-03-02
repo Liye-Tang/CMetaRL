@@ -430,6 +430,7 @@ class MetaLearner:
 
                 torch.save(self.policy.actor_critic, os.path.join(save_path, f"policy{idx_label}.pt"))
                 torch.save(self.vae.encoder, os.path.join(save_path, f"encoder{idx_label}.pt"))
+                torch.save(self.cluster.proto_proj, os.path.join(save_path, f"proto_proj{idx_label}.pt"))
                 if self.vae.state_decoder is not None:
                     torch.save(self.vae.state_decoder, os.path.join(save_path, f"state_decoder{idx_label}.pt"))
                 if self.vae.reward_decoder is not None:
