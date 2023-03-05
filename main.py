@@ -22,7 +22,7 @@ from config.mujoco import \
     args_ant_goal_humplik, \
     args_walker_multitask, args_walker_expert, args_walker_avg, args_walker_rl2, args_walker_varibad, \
     args_humanoid_dir_varibad, args_humanoid_dir_rl2, args_humanoid_dir_multitask, args_humanoid_dir_expert
-from config.vehicle import args_veh_varibad
+from config.vehicle import args_veh_varibad, args_param_varibad
 from environments.parallel_envs import make_vec_envs
 from learner import Learner
 from metalearner import MetaLearner
@@ -30,7 +30,8 @@ from metalearner import MetaLearner
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env-type', default='vehicle_varibad')
+    parser.add_argument('--env-type', default='param_varibad')
+    # parser.add_argument('--env-type', default='vehicle_varibad')
     # parser.add_argument('--env-type', default='pointrobot_varibad')
     args, rest_args = parser.parse_known_args()
     env = args.env_type
@@ -126,6 +127,8 @@ def main():
     # --- Vehicle ---
     elif env == 'vehicle_varibad':
         args = args_veh_varibad.get_args(rest_args)
+    elif env == 'param_varibad':
+        args = args_param_varibad.get_args(rest_args)
     else:
         raise Exception("Invalid Environment")
 
