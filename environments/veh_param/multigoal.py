@@ -13,7 +13,7 @@ from environments.pathfollow.utils import *
 
 class MultiGoalEnv(gym.Env):
     def __init__(self,
-                 goal_point=(40, 50, 0)),
+                 goal_point=(40, 50, 0),
                  start_point=(0, 0, 90)
                  ):
         self.observation_space = gym.spaces.Box(
