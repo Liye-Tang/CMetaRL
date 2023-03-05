@@ -111,3 +111,11 @@ register(
     kwargs={},
     max_episode_steps=200
 )
+
+
+register(
+    'MultiParamEnv-v0',
+    entry_point='environments.veh_param.Multiparam:MultiParamEnv',
+    kwargs={},
+    max_episode_steps=200
+)

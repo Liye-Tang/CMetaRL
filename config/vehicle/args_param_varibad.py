@@ -7,16 +7,16 @@ def get_args(rest_args):
 
     # --- GENERAL ---
 
-    parser.add_argument('--num_frames', type=int, default=2e7, help='number of frames to train')
+    parser.add_argument('--num_frames', type=int, default=42e7, help='number of frames to train')
     parser.add_argument('--max_rollouts_per_task', type=int, default=1, help='number of MDP episodes for adaptation')
     parser.add_argument('--exp_label', default='varibad', help='label (typically name of method)')
-    parser.add_argument('--env_name', default='MultiGoalEnv-v0', help='environment to train on')
+    parser.add_argument('--env_name', default='MultiParamEnv-v0', help='environment to train on')
 
     # --- POLICY ---
 
     # what to pass to the policy (note this is after the encoder)
     parser.add_argument('--pass_state_to_policy', type=boolean_argument, default=True, help='condition policy on state')
-    parser.add_argument('--pass_latent_to_policy', type=boolean_argument, default=False, help='condition policy on VAE latent')
+    parser.add_argument('--pass_latent_to_policy', type=boolean_argument, default=True, help='condition policy on VAE latent')
     parser.add_argument('--pass_belief_to_policy', type=boolean_argument, default=False, help='condition policy on ground-truth belief')
     parser.add_argument('--pass_task_to_policy', type=boolean_argument, default=False, help='condition policy on ground-truth task description')
 
@@ -145,8 +145,7 @@ def get_args(rest_args):
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
-    parser.add_argument('--lr_cluster', type=float, default=0.00008, help='the sinkhorn param')
-    parser.add_argument('--lr_cluster', type=float, default=0.00008, help='the sinkhorn param')
+    parser.add_argument('--lr_cluster', type=float, default=0.00005, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
     parser.add_argument('--num_cluster_updates', type=int, default=1, help='')
@@ -179,7 +178,7 @@ def get_args(rest_args):
                         help='sample embedding for policy, instead of full belief')
 
     # for other things
-    parser.add_argument('--disable_metalearner', type=boolean_argument, default=True,
+    parser.add_argument('--disable_metalearner', type=boolean_argument, default=False,
                         help='Train feedforward policy')
     parser.add_argument('--single_task_mode', type=boolean_argument, default=False,
                         help='train policy on one (randomly chosen) environment only')
@@ -193,7 +192,7 @@ def get_args(rest_args):
     parser.add_argument('--scale_punish_steer', type=float, default=1, help='None')
     parser.add_argument('--scale_punish_a_x', type=float, default=0.1, help='None')
     parser.add_argument('--reward_shift', type=float, default=2., help='None')
-    parser.add_argument('--N', type=int, default=5, help='the predictive horizon')
+    parser.add_argument('--N', type=int, default=1, help='the predictive horizon')
     parser.add_argument('--EXPECTED_V', type=float, default=3., help='expected velocity of vehicle')
     parser.add_argument('--num_max_step', type=int, default=200, help='the max episode steps of the env')
 
