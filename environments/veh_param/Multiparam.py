@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 import random
 
 
-from environments.pathfollow.ref_path import ReferencePath
-from environments.pathfollow.dynamics_and_models import VehicleDynamics, EnvironmentModel
-from environments.pathfollow.utils import *
+from environments.veh_param.ref_path import ReferencePath
+from environments.veh_param.dynamics_and_models import VehicleDynamics, EnvironmentModel
+from environments.veh_param.utils import *
 
 
 class MultiParamEnv(gym.Env):
@@ -176,9 +176,17 @@ class MultiParamEnv(gym.Env):
         self.ego_state = np.array(ego_state, dtype=np.float32)
     
     def generate_ego_param(self):
-        C_f = random.random() * 20000 - 90000
+        C_f = random.random() * 50000 - 90000
+        I_z = 2200 - random.random() * 1200
+        a = 1.2 - 0.4 * random.ramdom()
+        b = 2.3 - a
+        mass = 1600 - random.random() * 800
         new_vehicle_param_dict = dict()
         new_vehicle_param_dict['C_f'] = C_f
+        new_vehicle_param_dict['I_z'] = I_z
+        new_vehicle_param_dict['a'] = a
+        new_vehicle_param_dict['b'] = b
+        new_vehicle_param_dict['mass'] = mass
         self.ego_dynamic.set_ego_param(new_vehicle_param_dict)
 
     def convert_to_rela(self, ego_state):
