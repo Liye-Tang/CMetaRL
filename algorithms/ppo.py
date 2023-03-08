@@ -15,6 +15,7 @@ class PPO:
                  policy_optimiser,
                  policy_anneal_lr,
                  train_steps,
+                 cluster_anneal_lr=False,
                  optimiser_vae=None,
                  optimiser_cluster=None,
                  lr=None,
@@ -50,11 +51,15 @@ class PPO:
 
         self.lr_scheduler_policy = None
         self.lr_scheduler_encoder = None
+        self.lr_scheduler_cluster = None
         if policy_anneal_lr:
             lam = lambda f: 1 - f / train_steps
             self.lr_scheduler_policy = optim.lr_scheduler.LambdaLR(self.optimiser, lr_lambda=lam)
             if hasattr(self.args, 'rlloss_through_encoder') and self.args.rlloss_through_encoder:
                 self.lr_scheduler_encoder = optim.lr_scheduler.LambdaLR(self.optimiser_vae, lr_lambda=lam)
+        if cluster_anneal_lr:
+            lam = lambda f: 1 - f / train_steps
+            self.lr_scheduler_cluster = optim.lr_scheduler.LambdaLR(self.optimiser_cluster, lr_lambda=lam)
 
     def update(self,
                policy_storage,
@@ -178,11 +183,7 @@ class PPO:
             for _ in range(self.args.num_vae_updates):
                 compute_vae_loss(update=True)
         
-<<<<<<< HEAD
-        if (self.optimiser_cluster is not None) and ():
-=======
         if (self.optimiser_cluster is not None) and (not self.args.disable_cluster):
->>>>>>> e2c45326a1cc30380da12cadaa430989b8ca8731
             for _ in range(self.args.num_cluster_updates):
                 compute_cluster_loss(update=True)
 
@@ -190,6 +191,8 @@ class PPO:
             self.lr_scheduler_policy.step()
         if self.lr_scheduler_encoder is not None:
             self.lr_scheduler_encoder.step()
+        if self.lr_scheduler_cluster is not None:
+            self.lr_scheduler_cluster.step()
 
         num_updates = self.ppo_epoch * self.num_mini_batch
 

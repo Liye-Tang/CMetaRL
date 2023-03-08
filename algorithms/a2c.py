@@ -16,7 +16,9 @@ class A2C:
                  policy_optimiser,
                  policy_anneal_lr,
                  train_steps,
+                 cluster_anneal_lr=False,
                  optimiser_vae=None,
+                 optimiser_cluster=None,
                  lr=None,
                  eps=None,
                  ):
@@ -35,20 +37,26 @@ class A2C:
         elif policy_optimiser == 'rmsprop':
             self.optimiser = optim.RMSprop(actor_critic.parameters(), lr, eps=eps, alpha=0.99)
         self.optimiser_vae = optimiser_vae
+        self.optimiser_cluster = optimiser_cluster
 
         self.lr_scheduler_policy = None
         self.lr_scheduler_encoder = None
+        self.lr_scheduler_cluster = None
         if policy_anneal_lr:
             lam = lambda f: 1 - f / train_steps
             self.lr_scheduler_policy = optim.lr_scheduler.LambdaLR(self.optimiser, lr_lambda=lam)
             if hasattr(self.args, 'rlloss_through_encoder') and self.args.rlloss_through_encoder:
                 self.lr_scheduler_encoder = optim.lr_scheduler.LambdaLR(self.optimiser_vae, lr_lambda=lam)
+        if cluster_anneal_lr and (self.optimiser_cluster is not None):
+            lam = lambda f: 1 - f / train_steps
+            self.lr_scheduler_cluster = optim.lr_scheduler.LambdaLR(self.optimiser_cluster, lr_lambda=lam)
 
     def update(self,
                policy_storage,
                encoder=None,  # variBAD encoder
                rlloss_through_encoder=False,  # whether or not to backprop RL loss through encoder
-               compute_vae_loss=None  # function that can compute the VAE loss
+               compute_vae_loss=None,  # function that can compute the VAE loss
+               compute_cluster_loss=None,  # function that can compute the Cluster loss
                ):
 
         # get action values
@@ -123,10 +131,16 @@ class A2C:
             for _ in range(self.args.num_vae_updates):
                 compute_vae_loss(update=True)
 
+        if (self.optimiser_cluster is not None) and (not self.args.disable_cluster):
+            for _ in range(self.args.num_cluster_updates):
+                compute_cluster_loss(update=True)
+        
         if self.lr_scheduler_policy is not None:
             self.lr_scheduler_policy.step()
         if self.lr_scheduler_encoder is not None:
             self.lr_scheduler_encoder.step()
+        if self.lr_scheduler_cluster is not None:
+            self.lr_scheduler_cluster.step()
 
         return value_loss, action_loss, dist_entropy, loss
 

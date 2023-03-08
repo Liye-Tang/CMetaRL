@@ -149,6 +149,8 @@ def get_args(rest_args):
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
     parser.add_argument('--num_cluster_updates', type=int, default=3, help='')
+    parser.add_argument('--cluster_anneal_lr', type=bool, default=False, help='')
+    
 
     # --- ABLATIONS ---
 
@@ -164,15 +166,8 @@ def get_args(rest_args):
     parser.add_argument('--kl_to_gauss_prior', type=boolean_argument, default=False,
                         help='KL term in ELBO to fixed Gaussian prior (instead of prev approx posterior)')
     
-<<<<<<< HEAD
-    # for the cluster
-    parser.add_argument('--disable_cluster', type=boolean_argument, default=True, 
-                        help='whether to use cluster')
-=======
     # for the cluster loss
-    
     parser.add_argument('--disable_cluster', type=boolean_argument, default=False, help='dont use the cluster loss')
->>>>>>> e2c45326a1cc30380da12cadaa430989b8ca8731
 
     # combining vae and RL loss
     parser.add_argument('--rlloss_through_encoder', type=boolean_argument, default=False,
