@@ -178,7 +178,7 @@ class PPO:
             for _ in range(self.args.num_vae_updates):
                 compute_vae_loss(update=True)
         
-        if self.optimiser_cluster is not None:
+        if (self.optimiser_cluster is not None) and ():
             for _ in range(self.args.num_cluster_updates):
                 compute_cluster_loss(update=True)
 

@@ -150,7 +150,6 @@ def get_args(rest_args):
     parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
     parser.add_argument('--num_cluster_updates', type=int, default=1, help='')
 
-
     # --- ABLATIONS ---
 
     # for the VAE
@@ -164,6 +163,10 @@ def get_args(rest_args):
                         help='only decoder past observations, not the future')
     parser.add_argument('--kl_to_gauss_prior', type=boolean_argument, default=False,
                         help='KL term in ELBO to fixed Gaussian prior (instead of prev approx posterior)')
+    
+    # for the cluster
+    parser.add_argument('--disable_cluster', type=boolean_argument, default=True, 
+                        help='whether to use cluster')
 
     # combining vae and RL loss
     parser.add_argument('--rlloss_through_encoder', type=boolean_argument, default=False,
