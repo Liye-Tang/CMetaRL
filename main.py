@@ -16,8 +16,8 @@ from config.pointrobot import \
 from config.mujoco import \
     args_cheetah_dir_multitask, args_cheetah_dir_expert, args_cheetah_dir_rl2, args_cheetah_dir_varibad, \
     args_cheetah_vel_multitask, args_cheetah_vel_expert, args_cheetah_vel_rl2, args_cheetah_vel_varibad, \
-    args_cheetah_vel_avg, \
-    args_ant_dir_multitask, args_ant_dir_expert, args_ant_dir_rl2, args_ant_dir_varibad, \
+    args_cheetah_vel_avg, args_cheetah_vel_cluster, \
+    args_ant_dir_multitask, args_ant_dir_expert, args_ant_dir_rl2, args_ant_dir_varibad, args_ant_dir_cluster, \
     args_ant_goal_multitask, args_ant_goal_expert, args_ant_goal_rl2, args_ant_goal_varibad, \
     args_ant_goal_humplik, \
     args_walker_multitask, args_walker_expert, args_walker_avg, args_walker_rl2, args_walker_varibad, \
@@ -30,8 +30,7 @@ from metalearner import MetaLearner
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env-type', default='param_varibad')
-    # parser.add_argument('--env-type', default='vehicle_varibad')
+    parser.add_argument('--env-type', default='ant_dir_cluster')
     # parser.add_argument('--env-type', default='pointrobot_varibad')
     args, rest_args = parser.parse_known_args()
     env = args.env_type
@@ -79,6 +78,8 @@ def main():
         args = args_cheetah_vel_varibad.get_args(rest_args)
     elif env == 'cheetah_vel_rl2':
         args = args_cheetah_vel_rl2.get_args(rest_args)
+    elif env == 'cheetah_vel_cluster':
+        args = args_cheetah_vel_cluster.get_args(rest_args)
     #
     # - AntDir -
     elif env == 'ant_dir_multitask':
@@ -89,6 +90,8 @@ def main():
         args = args_ant_dir_varibad.get_args(rest_args)
     elif env == 'ant_dir_rl2':
         args = args_ant_dir_rl2.get_args(rest_args)
+    elif env == 'ant_dir_cluster':
+        args = args_ant_dir_cluster.get_args(rest_args)
     #
     # - AntGoal -
     elif env == 'ant_goal_multitask':
