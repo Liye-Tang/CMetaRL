@@ -10,7 +10,7 @@ def get_args(rest_args):
     parser.add_argument('--num_frames', type=int, default=2e7, help='number of frames to train')
     parser.add_argument('--max_rollouts_per_task', type=int, default=1, help='number of MDP episodes for adaptation')
     parser.add_argument('--exp_label', default='varibad', help='label (typically name of method)')
-    parser.add_argument('--env_name', default='MultiGoalEnv-v0', help='environment to train on')
+    parser.add_argument('--env_name', default='MultiParamEnv-v0', help='environment to train on')
 
     # --- POLICY ---
 
@@ -97,7 +97,7 @@ def get_args(rest_args):
     parser.add_argument('--num_vae_updates', type=int, default=5,
                         help='how many VAE update steps to take per meta-iteration')
     parser.add_argument('--pretrain_len', type=int, default=0, help='for how many updates to pre-train the VAE')
-    parser.add_argument('--kl_weight', type=float, default=0.1, help='weight for the KL term')
+    parser.add_argument('--kl_weight', type=float, default=0.0, help='weight for the KL term')
 
     parser.add_argument('--split_batches_by_task', type=boolean_argument, default=False,
                         help='split batches up by task (to save memory or if tasks are of different length)')
@@ -158,16 +158,12 @@ def get_args(rest_args):
                         help='train without decoder')
     parser.add_argument('--disable_stochasticity_in_latent', type=boolean_argument, default=False,
                         help='use auto-encoder (non-variational)')
-    parser.add_argument('--disable_kl_term', type=boolean_argument, default=False,
+    parser.add_argument('--disable_kl_term', type=boolean_argument, default=True,
                         help='dont use the KL regularising loss term')
     parser.add_argument('--decode_only_past', type=boolean_argument, default=False,
                         help='only decoder past observations, not the future')
     parser.add_argument('--kl_to_gauss_prior', type=boolean_argument, default=False,
                         help='KL term in ELBO to fixed Gaussian prior (instead of prev approx posterior)')
-    
-    # for the cluster loss
-    
-    parser.add_argument('--disable_cluster', type=boolean_argument, default=False, help='dont use the cluster loss')
 
     # combining vae and RL loss
     parser.add_argument('--rlloss_through_encoder', type=boolean_argument, default=False,
