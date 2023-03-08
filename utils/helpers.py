@@ -118,7 +118,7 @@ def get_latent_for_policy(args, latent_sample=None, latent_mean=None, latent_log
     if args.sample_embeddings:
         latent = latent_sample
     else:
-        latent = latent_mean
+        latent = torch.concatenate([latent_mean, latent_logvar], axis=-1)
 
     if latent.shape[0] == 1:
         latent = latent.squeeze(0)
