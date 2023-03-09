@@ -119,6 +119,7 @@ class MetaLearner:
             #
             action_space=self.envs.action_space,
             init_std=self.args.policy_init_std,
+            is_attn_policy=self.args.is_attn_policy,
         ).to(device)
 
         # initialise policy trainer

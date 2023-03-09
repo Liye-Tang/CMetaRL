@@ -48,7 +48,7 @@ class Policy(nn.Module):
                  # output
                  action_space,
                  init_std,
-                 is_attn_policy=True,
+                 is_attn_policy=False,
                  num_policy_tokens=20,
                  ):
         """
@@ -149,7 +149,7 @@ class Policy(nn.Module):
     def get_critic_params(self):
         return [*self.critic.parameters(), *self.critic_linear.parameters()]
 
-    def forward_actor(self, inputs, policy_num):
+    def forward_actor(self, inputs, policy_num=0):
         if not self.is_attn_policy:
             h = inputs
             for i in range(len(self.actor_layers)):
@@ -167,7 +167,7 @@ class Policy(nn.Module):
             h = self.activation_function(h)
         return h
 
-    def forward(self, state, latent, belief, task, policy_num):
+    def forward(self, state, latent, belief, task, policy_num=None):
 
         # handle inputs (normalise + embed)
 
@@ -211,10 +211,11 @@ class Policy(nn.Module):
             a_inputs = inputs
         # forward through critic/actor part
         hidden_critic = self.forward_critic(inputs)
-        hidden_actor = self.forward_actor(a_inputs, policy_num)
+        if self.is_attn_policy:
+            hidden_actor = self.forward_actor(a_inputs, policy_num)
         return self.critic_linear(hidden_critic), hidden_actor
 
-    def act(self, state, latent, belief, task, policy_num, deterministic=False):
+    def act(self, state, latent, belief, task, policy_num=None, deterministic=False):
         """
         Returns the (raw) actions and their value.
         """
@@ -250,7 +251,7 @@ class Policy(nn.Module):
         if self.pass_task_to_policy and self.norm_task:
             self.task_rms.update(policy_storage.tasks[:-1])
 
-    def evaluate_actions(self, state, latent, belief, task, action, policy_num):
+    def evaluate_actions(self, state, latent, belief, task, action, policy_num=None):
 
         value, actor_features = self.forward(state, latent, belief, task, policy_num)
         dist = self.dist(actor_features)

@@ -8,10 +8,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from timm.data import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD, IMAGENET_INCEPTION_MEAN, IMAGENET_INCEPTION_STD
-from .helpers import build_model_with_cfg, named_apply, adapt_input_conv
-from .layers import PatchEmbed, Mlp, DropPath, trunc_normal_, lecun_normal_
-from .registry import register_model
+# from timm.data import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD, IMAGENET_INCEPTION_MEAN, IMAGENET_INCEPTION_STD
+# from .helpers import build_model_with_cfg, named_apply, adapt_input_conv
+from models.layers import Mlp, trunc_normal_, lecun_normal_
+# from .registry import register_model
 
 _logger = logging.getLogger(__name__)
 
@@ -109,6 +109,7 @@ class VisionTransformer(nn.Module):
         _init_vit_weights(m)
 
     def forward(self, x, token_num):
+        x = torch.cat((*self.policy_tokens, x), dim=1)
         x = x + self.pos_embed
         x = self.low_blocks(x)
         x = self.norm(x)
