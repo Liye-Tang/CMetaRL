@@ -21,7 +21,7 @@ def get_args(rest_args):
     parser.add_argument('--pass_task_to_policy', type=boolean_argument, default=False, help='condition policy on ground-truth task description')
 
     # using separate encoders for the different inputs ("None" uses no encoder)
-    parser.add_argument('--policy_state_embedding_dim', type=int, default=64)
+    parser.add_argument('--policy_state_embedding_dim', type=int, default=256)
     parser.add_argument('--policy_latent_embedding_dim', type=int, default=64)
     parser.add_argument('--policy_belief_embedding_dim', type=int, default=None)
     parser.add_argument('--policy_task_embedding_dim', type=int, default=None)
@@ -36,7 +36,7 @@ def get_args(rest_args):
     parser.add_argument('--norm_actions_post_sampling', type=boolean_argument, default=True, help='normalise policy output')
 
     # network
-    parser.add_argument('--policy_layers', nargs='+', default=[256, 256])
+    parser.add_argument('--policy_layers', nargs='+', default=[256, 256, 256])
     parser.add_argument('--policy_activation_function', type=str, default='tanh', help='tanh/relu/leaky-relu')
     parser.add_argument('--policy_initialisation', type=str, default='normc', help='normc/orthogonal')
     parser.add_argument('--policy_anneal_lr', type=boolean_argument, default=True)
@@ -180,7 +180,7 @@ def get_args(rest_args):
     parser.add_argument('--scale_punish_steer', type=float, default=1, help='None')
     parser.add_argument('--scale_punish_a_x', type=float, default=0.1, help='None')
     parser.add_argument('--reward_shift', type=float, default=2., help='None')
-    parser.add_argument('--N', type=int, default=20, help='the predictive horizon')
+    parser.add_argument('--N', type=int, default=50, help='the predictive horizon')
     parser.add_argument('--EXPECTED_V', type=float, default=3., help='expected velocity of vehicle')
     parser.add_argument('--num_max_step', type=int, default=200, help='the max episode steps of the env')
 
