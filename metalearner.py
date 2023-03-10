@@ -16,7 +16,11 @@ from utils.tb_logger import TBLogger
 from vae import VaribadVAE
 from cluster import Cluster
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+import utils.gol as gol
+
+device_name = gol.get_value("device")
+device = torch.device(device_name if torch.cuda.is_available() else "cpu")
+
 
 
 class MetaLearner:

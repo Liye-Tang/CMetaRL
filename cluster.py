@@ -10,7 +10,11 @@ import torch.backends.cudnn as cudnn
 import torch.optim
 import torch.nn.functional as F
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+import utils.gol as gol
+
+device_name = gol.get_value("device")
+device = torch.device(device_name if torch.cuda.is_available() else "cpu")
+
 
 class Cluster:
     def __init__(self, args, encoder, rollout_storage, logger, get_iter_idx):

@@ -2,6 +2,9 @@
 Main scripts to start experiments.
 Takes a flag --env-type (see below for choices) and loads the parameters from the respective config file.
 """
+import utils.gol as gol
+gol._init()
+gol.set_value('device', 'cuda:1')
 import argparse
 import warnings
 
