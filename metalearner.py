@@ -101,25 +101,46 @@ class MetaLearner:
     def initialise_policy(self):
 
         # initialise policy network
-        policy_net = Policy(
-            args=self.args,
-            #
-            pass_state_to_policy=self.args.pass_state_to_policy,
-            pass_latent_to_policy=self.args.pass_latent_to_policy,
-            pass_belief_to_policy=self.args.pass_belief_to_policy,
-            pass_task_to_policy=self.args.pass_task_to_policy,
-            dim_state=self.args.state_dim,
-            dim_latent=self.args.latent_dim,
-            dim_belief=self.args.belief_dim,
-            dim_task=self.args.task_dim,
-            #
-            hidden_layers=self.args.policy_layers,
-            activation_function=self.args.policy_activation_function,
-            policy_initialisation=self.args.policy_initialisation,
-            #
-            action_space=self.envs.action_space,
-            init_std=self.args.policy_init_std,
-        ).to(device)
+        if self.args.disable_cluster:
+            policy_net = Policy(
+                args=self.args,
+                #
+                pass_state_to_policy=self.args.pass_state_to_policy,
+                pass_latent_to_policy=self.args.pass_latent_to_policy,
+                pass_belief_to_policy=self.args.pass_belief_to_policy,
+                pass_task_to_policy=self.args.pass_task_to_policy,
+                dim_state=self.args.state_dim,
+                dim_latent=self.args.latent_dim * 2,
+                dim_belief=self.args.belief_dim,
+                dim_task=self.args.task_dim,
+                #
+                hidden_layers=self.args.policy_layers,
+                activation_function=self.args.policy_activation_function,
+                policy_initialisation=self.args.policy_initialisation,
+                #
+                action_space=self.envs.action_space,
+                init_std=self.args.policy_init_std,
+            ).to(device)
+        else:
+            policy_net = Policy(
+                args=self.args,
+                #
+                pass_state_to_policy=self.args.pass_state_to_policy,
+                pass_latent_to_policy=self.args.pass_latent_to_policy,
+                pass_belief_to_policy=self.args.pass_belief_to_policy,
+                pass_task_to_policy=self.args.pass_task_to_policy,
+                dim_state=self.args.state_dim,
+                dim_latent=self.args.latent_dim,
+                dim_belief=self.args.belief_dim,
+                dim_task=self.args.task_dim,
+                #
+                hidden_layers=self.args.policy_layers,
+                activation_function=self.args.policy_activation_function,
+                policy_initialisation=self.args.policy_initialisation,
+                #
+                action_space=self.envs.action_space,
+                init_std=self.args.policy_init_std,
+            ).to(device)
 
         # initialise policy trainer
         if self.args.policy == 'a2c':
