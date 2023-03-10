@@ -4,5 +4,5 @@ __pycache__
 .idea
 
 logs/
-# scripts/
+scripts/
 docker/
