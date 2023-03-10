@@ -109,7 +109,10 @@ class PPO:
                                                          latent_logvar=latent_logvar_batch
                                                          )
                 
-                policy_num_batch = cal_policy_num(latent_batch)
+                if self.args.is_attn_policy:
+                    policy_num_batch = cal_policy_num(latent_batch)
+                else:
+                    policy_num_batch = None
 
                 # Reshape to do in a single forward pass for all steps
                 values, action_log_probs, dist_entropy = \
@@ -199,5 +202,5 @@ class PPO:
 
         return value_loss_epoch, action_loss_epoch, dist_entropy_epoch, loss_epoch
 
-    def act(self, state, latent, belief, task, deterministic=False):
-        return self.actor_critic.act(state=state, latent=latent, belief=belief, task=task, deterministic=deterministic)
+    def act(self, state, latent, belief, task, deterministic=False, policy_num=None):
+        return self.actor_critic.act(state=state, latent=latent, belief=belief, task=task, deterministic=deterministic, policy_num=policy_num)

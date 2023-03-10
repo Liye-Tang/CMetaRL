@@ -15,6 +15,8 @@ from models.layers import Mlp, trunc_normal_, lecun_normal_
 
 _logger = logging.getLogger(__name__)
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 class Attention(nn.Module):
     def __init__(self, dim, num_heads=8, qkv_bias=False):
@@ -64,7 +66,7 @@ class Block(nn.Module):
 
 class VisionTransformer(nn.Module):
 
-    def __init__(self, num_input_tokens=3, num_policy_tokens=10, embed_dim=6*64, depth=3,
+    def __init__(self, num_input_tokens=2, num_policy_tokens=10, embed_dim=6*64, depth=3,
                  mlp_ratio=4., qkv_bias=True, norm_layer=None, out_feature_dim=None, num_heads=6,
                  act_layer=None):
         super().__init__()
@@ -78,13 +80,13 @@ class VisionTransformer(nn.Module):
         self.num_heads = num_heads
         
         # init the policy and the cls token
-        self.policy_tokens = [nn.Parameter(torch.zeros(1, 1, embed_dim)) for i in range(self.num_policy_tokens)]
+        self.policy_tokens = [nn.Parameter(torch.zeros(1, 1, embed_dim)).to(device) for i in range(self.num_policy_tokens)]
         
         # action
         norm_layer = norm_layer or partial(nn.LayerNorm, eps=1e-6)
         act_layer = act_layer or nn.GELU
 
-        self.pos_embed = nn.Parameter(torch.zeros(1, self.num_inputs + self.num_tokens, embed_dim))
+        self.pos_embed = nn.Parameter(torch.zeros(1, self.num_input_tokens + self.num_policy_tokens, embed_dim))
         
         self.low_blocks = nn.Sequential(*[
             Block(

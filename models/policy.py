@@ -205,8 +205,7 @@ class Policy(nn.Module):
         if self.is_attn_policy:
             state = state.unsqueeze(1)
             latent = latent.unsqueeze(1)
-            belief = belief.unsqueeze(1)
-            a_inputs = torch.cat((state, latent, belief), dim=1)
+            a_inputs = torch.cat((state, latent), dim=1)
         else:
             a_inputs = inputs
         # forward through critic/actor part

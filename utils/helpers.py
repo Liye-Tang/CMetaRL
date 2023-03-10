@@ -92,11 +92,17 @@ def select_action(args,
                   state=None,
                   belief=None,
                   task=None,
-                  latent_sample=None, latent_mean=None, latent_logvar=None):
+                  latent_sample=None, latent_mean=None, latent_logvar=None,
+                  cal_policy_num=None):
     """ Select action using the policy. """
     latent = get_latent_for_policy(args=args, latent_sample=latent_sample, latent_mean=latent_mean,
                                    latent_logvar=latent_logvar)
-    action = policy.act(state=state, latent=latent, belief=belief, task=task, deterministic=deterministic)
+    if args.is_attn_policy:
+        policy_num_batch = cal_policy_num(latent)
+    else:
+        policy_num_batch = None
+    
+    action = policy.act(state=state, latent=latent, belief=belief, task=task, deterministic=deterministic, policy_num_batch=policy_num_batch)
     if isinstance(action, list) or isinstance(action, tuple):
         value, action = action
     else:

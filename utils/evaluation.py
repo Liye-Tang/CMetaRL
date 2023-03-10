@@ -16,7 +16,8 @@ def evaluate(args,
              iter_idx,
              tasks,
              encoder=None,
-             num_episodes=None
+             num_episodes=None,
+             cal_policy_num=None
              ):
     env_name = args.env_name
     if hasattr(args, 'test_env_name'):
@@ -81,7 +82,8 @@ def evaluate(args,
                                               latent_sample=latent_sample,
                                               latent_mean=latent_mean,
                                               latent_logvar=latent_logvar,
-                                              deterministic=True)
+                                              deterministic=True,
+                                              cal_policy_num=cal_policy_num)
 
             # observe reward and next obs
             [state, belief, task], (rew_raw, rew_normalised), done, infos = utl.env_step(envs, action, args)

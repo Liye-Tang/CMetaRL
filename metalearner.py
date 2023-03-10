@@ -373,21 +373,21 @@ class MetaLearner:
 
         if (self.iter_idx + 1) % self.args.vis_interval == 0:
             ret_rms = self.envs.venv.ret_rms if self.args.norm_rew_for_policy else None
-            utl_eval.visualise_behaviour(args=self.args,
-                                         policy=self.policy,
-                                         image_folder=self.logger.full_output_folder,
-                                         iter_idx=self.iter_idx,
-                                         ret_rms=ret_rms,
-                                         encoder=self.vae.encoder,
-                                         reward_decoder=self.vae.reward_decoder,
-                                         state_decoder=self.vae.state_decoder,
-                                         task_decoder=self.vae.task_decoder,
-                                         compute_rew_reconstruction_loss=self.vae.compute_rew_reconstruction_loss,
-                                         compute_state_reconstruction_loss=self.vae.compute_state_reconstruction_loss,
-                                         compute_task_reconstruction_loss=self.vae.compute_task_reconstruction_loss,
-                                         compute_kl_loss=self.vae.compute_kl_loss,
-                                         tasks=self.train_tasks,
-                                         )
+            # utl_eval.visualise_behaviour(args=self.args,
+            #                              policy=self.policy,
+            #                              image_folder=self.logger.full_output_folder,
+            #                              iter_idx=self.iter_idx,
+            #                              ret_rms=ret_rms,
+            #                              encoder=self.vae.encoder,
+            #                              reward_decoder=self.vae.reward_decoder,
+            #                              state_decoder=self.vae.state_decoder,
+            #                              task_decoder=self.vae.task_decoder,
+            #                              compute_rew_reconstruction_loss=self.vae.compute_rew_reconstruction_loss,
+            #                              compute_state_reconstruction_loss=self.vae.compute_state_reconstruction_loss,
+            #                              compute_task_reconstruction_loss=self.vae.compute_task_reconstruction_loss,
+            #                              compute_kl_loss=self.vae.compute_kl_loss,
+            #                              tasks=self.train_tasks,
+            #                              )
 
         # --- evaluate policy ----
 
@@ -400,6 +400,7 @@ class MetaLearner:
                                                     encoder=self.vae.encoder,
                                                     iter_idx=self.iter_idx,
                                                     tasks=self.train_tasks,
+                                                    cal_policy_num=self.cluster.cal_policy_num
                                                     )
 
             # log the return avg/std across tasks (=processes)

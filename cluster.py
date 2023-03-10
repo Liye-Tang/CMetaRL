@@ -127,7 +127,8 @@ class Cluster:
         latent = latent.reshape(-1, self.latent_dim)
         embedding = F.normalize(latent, dim=1, p=2)
         scores = self.proto_proj(embedding)
-        policy_nums = cal_nums_with_scores(scores)
+        log_prob = F.log_softmax(scores / self.args.temperature, dim=1)
+        policy_nums = cal_nums_with_scores(log_prob)
         
         
 def cal_nums_with_scores(scores):

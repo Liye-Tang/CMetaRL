@@ -148,6 +148,7 @@ def get_args(rest_args):
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
     parser.add_argument('--num_cluster_updates', type=int, default=1, help='')
+    parser.add_argument('--is_attn_policy', type=bool, default=True, help='')
 
     # --- ABLATIONS ---
 
