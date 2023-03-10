@@ -173,14 +173,14 @@ def get_args(rest_args):
 
     # --- ENV ---
 
-    parser.add_argument('--scale_devi_p', type=float, default=0.3, help='None')
-    parser.add_argument('--scale_devi_v', type=float, default=0.1, help='None')
+    parser.add_argument('--scale_devi_p', type=float, default=0.1, help='None')
+    parser.add_argument('--scale_devi_v', type=float, default=0.5, help='None')
     parser.add_argument('--scale_devi_phi', type=float, default=0.8, help='None')
     parser.add_argument('--scale_punish_yaw_rate', type=float, default=0.1, help='None')
     parser.add_argument('--scale_punish_steer', type=float, default=1, help='None')
     parser.add_argument('--scale_punish_a_x', type=float, default=0.1, help='None')
-    parser.add_argument('--scale_constraint', type=float, default=0.1, help='None')
-    parser.add_argument('--reward_shift', type=float, default=2., help='None')
+    parser.add_argument('--scale_constraint', type=float, default=2., help='None')
+    parser.add_argument('--reward_shift', type=float, default=10., help='None')
     parser.add_argument('--N', type=int, default=20, help='the predictive horizon')
     parser.add_argument('--EXPECTED_V', type=float, default=3., help='expected velocity of vehicle')
     parser.add_argument('--num_max_step', type=int, default=200, help='the max episode steps of the env')

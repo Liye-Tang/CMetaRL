@@ -28,10 +28,10 @@ def test_policy(load_path, iter):
         env_name = args.test_env_name
 
     test_env = gym.make(env_name)
-    num_steps = 50
+    num_steps = 200
     policy = torch.load(os.path.join(load_path, 'models/policy{}.pt'.format(iter)))
-    # encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)))
-    encoder = None
+    encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter)))
+    # encoder = None
 
     # reset environment
     state = test_env.reset()
@@ -60,9 +60,10 @@ def test_policy(load_path, iter):
                                             deterministic=True)
 
         # observe reward and next obs
-        print(state[0][0])
+        # print(state[0][0])
         state, rew_raw, done, info = test_env.step(action.cpu().numpy()[0])
-        print(action.cpu().numpy()[0])
+        # print(action.cpu().numpy()[0])
+        print(info['veh2veh4training'])
         # ret += rew_raw
         # devi_p += info['scaled_devi_p']
         # devi_v += info['scaled_devi_v']
@@ -72,7 +73,7 @@ def test_policy(load_path, iter):
         # punish_yaw_rate += info['scaled_punish_yaw_rate']
         
         state = torch.from_numpy(state).float().to(device).unsqueeze(0)
-        rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device)
+        rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device).unsqueeze(0)
         # done = torch.from_numpy(done).float().to(device)
         # state = np.concatenate([state, 0.0])
         # test_env.render()
@@ -88,7 +89,7 @@ def test_policy(load_path, iter):
             latent_sample, latent_mean, latent_logvar, hidden_state = latent_sample.unsqueeze(0), latent_mean.unsqueeze(0), latent_logvar.unsqueeze(0), hidden_state.unsqueeze(0)
 
         if done:
-            # print('this is an end')
+            print('-' * 60)
             # print(done)
             break
     
@@ -98,9 +99,9 @@ def test_policy(load_path, iter):
 
 
 def main():
-    load_path = "./logs/logs_MultiGoalEnv-v0/varibad_74__10:01_00:13:36"
-    iter = 2999
-    for i in range(20):
+    load_path = "./logs/MultiGoalEnv-v0-meta/varibad_74__21:02_22:20:12"
+    iter = 12499
+    for i in range(1):
         test_policy(load_path, iter)
 
 

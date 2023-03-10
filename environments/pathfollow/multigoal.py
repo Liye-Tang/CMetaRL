@@ -148,8 +148,8 @@ class MultiGoalEnv(gym.Env):
             return 'deviate too much', 1
         # elif self.area_index == 2:
         #     return 'good done', 2
-        elif info['veh2veh4training'] >= 100:
-            return 'collision', 2
+        # elif info['veh2veh4training'] >= 100:
+        #     return 'collision', 2
         else:
             return 'not_done', 0
 
@@ -216,7 +216,8 @@ class MultiGoalEnv(gym.Env):
         veh_state[0] = ref_x + self.offset * np.sin(ref_phi / 180 * np.pi)
         veh_state[1] = ref_y - self.offset * np.cos(ref_phi / 180 * np.pi)
         veh_state[2] = ref_phi
-        veh_state[3] = random.random() * (ref_v - 2) + 2 
+        # veh_state[3] = random.random() * (ref_v - 2) + 2
+        veh_state[3] = random.random() * 4
         
         self.veh_state = np.array(veh_state, dtype=np.float32)
 
@@ -298,7 +299,7 @@ def test():
             #             actions + tf.experimental.numpy.random.rand(2) * 0.05, i)
             #         env_model.render()
             if done:
-                print(env.done_type)
+                print('-------------------------------------')
                 break
         env.reset()
         # env.render(weights=np.zeros(env.other_number,))

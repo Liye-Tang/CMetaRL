@@ -108,23 +108,23 @@ class EnvironmentModel(object):
         # print(obses_veh[0, 0], obses_veh[0, 1])
         # print([veh_front_points[0].numpy()[0], veh_front_points[1].numpy()[0]], 
         #       [veh_rear_points[0].numpy()[0], veh_rear_points[1].numpy()[0]])
-        # for ego_point in [ego_front_points, ego_rear_points]:
-        #     for veh_point in [veh_front_points, veh_rear_points]:
-        #         veh2veh_dist = tf.sqrt(
-        #             tf.square(ego_point[0] - veh_point[0]) + tf.square(ego_point[1] - veh_point[1]))
-        #         veh2veh4training += tf.where(veh2veh_dist - 3.5 < 0, tf.square(veh2veh_dist - 3.5),
-        #                                         tf.cast(tf.zeros_like(obses[:, 0]), dtype=tf.float32))
-        #         veh2veh4real += tf.where(veh2veh_dist - 2.5 < 0, tf.square(veh2veh_dist - 2.5),
-        #                                     tf.cast(tf.zeros_like(obses[:, 0]), dtype=tf.float32))
-        
         for ego_point in [ego_front_points, ego_rear_points]:
             for veh_point in [veh_front_points, veh_rear_points]:
                 veh2veh_dist = tf.sqrt(
                     tf.square(ego_point[0] - veh_point[0]) + tf.square(ego_point[1] - veh_point[1]))
-                veh2veh4training += tf.where(veh2veh_dist - 3.5 < 0, tf.cast(tf.ones_like(obses[:, 0]), dtype=tf.float32) * 100,
-                                                self.constraint_function(veh2veh_dist - 3.5))
-                veh2veh4real += tf.where(veh2veh_dist - 2.5 < 0, tf.cast(tf.ones_like(obses[:, 0]), dtype=tf.float32) * 100,
-                                                self.constraint_function(veh2veh_dist - 2.5))
+                veh2veh4training += tf.where(veh2veh_dist - 3.5 < 0, tf.square(veh2veh_dist - 3.5),
+                                                tf.cast(tf.zeros_like(obses[:, 0]), dtype=tf.float32))
+                veh2veh4real += tf.where(veh2veh_dist - 2.5 < 0, tf.square(veh2veh_dist - 2.5),
+                                            tf.cast(tf.zeros_like(obses[:, 0]), dtype=tf.float32))
+        
+        # for ego_point in [ego_front_points, ego_rear_points]:
+        #     for veh_point in [veh_front_points, veh_rear_points]:
+        #         veh2veh_dist = tf.sqrt(
+        #             tf.square(ego_point[0] - veh_point[0]) + tf.square(ego_point[1] - veh_point[1]))
+        #         veh2veh4training += tf.where(veh2veh_dist - 3.5 < 0, tf.cast(tf.ones_like(obses[:, 0]), dtype=tf.float32) * 100,
+        #                                         self.constraint_function(veh2veh_dist - 3.5))
+        #         veh2veh4real += tf.where(veh2veh_dist - 2.5 < 0, tf.cast(tf.ones_like(obses[:, 0]), dtype=tf.float32) * 100,
+        #                                         self.constraint_function(veh2veh_dist - 2.5))
         
         
         rewards = Para.scale_devi_p * devi_p + \
@@ -160,7 +160,7 @@ class EnvironmentModel(object):
 
         return obses_ego, obses_veh
     
-    def constraint_function(self, dist):
-        dist_rew = tf.math.exp(1 / (dist)) - 1
-        dist_rew = tf.where(dist_rew > 100, 100 * tf.cast(tf.ones_like(dist_rew), dtype=tf.float32), dist_rew)
-        return dist_rew
+    # def constraint_function(self, dist):
+    #     dist_rew = tf.math.exp(0.1 / (dist)) - 1
+    #     dist_rew = tf.where(dist_rew > 100, 100 * tf.cast(tf.ones_like(dist_rew), dtype=tf.float32), dist_rew)
+    #     return dist_rew
