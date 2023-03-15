@@ -202,6 +202,7 @@ class MetaLearner:
                         latent_sample=latent_sample,
                         latent_mean=latent_mean,
                         latent_logvar=latent_logvar,
+                        cal_policy_num=self.cluster.cal_policy_num
                     )
 
                 # take step in the environment
@@ -475,7 +476,7 @@ class MetaLearner:
 
             # log the average weights and gradients of all models (where applicable)
             for [model, name] in [
-                [self.policy.actor_critic, 'policy'],
+                # [self.policy.actor_critic, 'policy'],
                 [self.vae.encoder, 'encoder'],
                 [self.vae.reward_decoder, 'reward_decoder'],
                 [self.vae.state_decoder, 'state_transition_decoder'],

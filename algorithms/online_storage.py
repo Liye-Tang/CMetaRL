@@ -206,7 +206,7 @@ class OnlineStorage(object):
     def num_transitions(self):
         return len(self.prev_state) * self.num_processes
 
-    def before_update(self, policy):
+    def before_update(self, policy, cal_policy_num):
         latent = utl.get_latent_for_policy(self.args,
                                            latent_sample=torch.stack(
                                                self.latent_samples[:-1]) if self.latent_samples is not None else None,
@@ -214,11 +214,17 @@ class OnlineStorage(object):
                                                self.latent_mean[:-1]) if self.latent_mean is not None else None,
                                            latent_logvar=torch.stack(
                                                self.latent_logvar[:-1]) if self.latent_mean is not None else None)
+        if self.args.is_attn_policy:
+            policy_num_batch = cal_policy_num(latent)
+        else:
+            policy_num_batch = None
+            
         _, action_log_probs, _ = policy.evaluate_actions(self.prev_state[:-1],
                                                          latent,
                                                          self.beliefs[:-1] if self.beliefs is not None else None,
                                                          self.tasks[:-1] if self.tasks is not None else None,
-                                                         self.actions)
+                                                         self.actions,
+                                                         policy_num=policy_num_batch)
         self.action_log_probs = action_log_probs.detach()
 
     def feed_forward_generator(self,

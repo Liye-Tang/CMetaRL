@@ -49,7 +49,7 @@ class Policy(nn.Module):
                  action_space,
                  init_std,
                  is_attn_policy=False,
-                 num_policy_tokens=20,
+                 num_policy_tokens=2,
                  ):
         """
         The policy can get any of these as input:
@@ -116,7 +116,7 @@ class Policy(nn.Module):
         if self.pass_task_to_policy and self.use_task_encoder:
             self.task_encoder = utl.FeatureExtractor(dim_task, self.args.policy_task_embedding_dim, self.activation_function)
             curr_input_dim = curr_input_dim - dim_task + self.args.policy_task_embedding_dim
-
+        
         # initialise actor and critic
         hidden_layers = [int(h) for h in hidden_layers]
         self.actor_layers = nn.ModuleList()
@@ -141,15 +141,18 @@ class Policy(nn.Module):
         
         # the attn action module
         self.is_attn_policy = is_attn_policy
-        self.attn_action_layer = VisionTransformer(num_input_tokens=2, num_policy_tokens=num_policy_tokens, embed_dim=6*64, out_feature_dim=64)
+        self.attn_action_layer = VisionTransformer(input_dim=self.args.policy_state_embedding_dim, num_input_tokens=2, num_policy_tokens=num_policy_tokens, embed_dim=6*64, out_feature_dim=hidden_layers[-1])
 
     def get_actor_params(self):
         return [*self.actor.parameters(), *self.dist.parameters()]
+    
+    def get_attn_params(self):
+        return [*self.attn_action_layer.parameters()]
 
     def get_critic_params(self):
         return [*self.critic.parameters(), *self.critic_linear.parameters()]
 
-    def forward_actor(self, inputs, policy_num=0):
+    def forward_actor(self, inputs, policy_num=None):
         if not self.is_attn_policy:
             h = inputs
             for i in range(len(self.actor_layers)):
@@ -158,6 +161,7 @@ class Policy(nn.Module):
         else:
             h = inputs
             h = self.attn_action_layer(h, policy_num)
+            h = self.activation_function(h)
         return h
 
     def forward_critic(self, inputs):
@@ -202,17 +206,29 @@ class Policy(nn.Module):
 
         # concatenate inputs
         inputs = torch.cat((state, latent, belief, task), dim=-1)
-        if self.is_attn_policy:
-            state = state.unsqueeze(1)
-            latent = latent.unsqueeze(1)
-            a_inputs = torch.cat((state, latent), dim=1)
-        else:
-            a_inputs = inputs
-        # forward through critic/actor part
         hidden_critic = self.forward_critic(inputs)
         if self.is_attn_policy:
-            hidden_actor = self.forward_actor(a_inputs, policy_num)
-        return self.critic_linear(hidden_critic), hidden_actor
+            # TODO: change the shape (a,b,c) to (a*b,c) and reshape to (a,b,c)
+            if len(state.shape) == 2:
+                state = state.unsqueeze(1)
+                latent = latent.unsqueeze(1)
+                a_inputs = torch.cat((state, latent), dim=1)
+                hidden_actor = self.forward_actor(a_inputs, policy_num)
+                return self.critic_linear(hidden_critic), hidden_actor
+            else:
+                traj_len, batch_size = state.shape[:2]
+                state = state.reshape(-1, state.shape[-1])
+                latent = latent.reshape(-1, latent.shape[-1])
+                policy_num = policy_num.reshape(-1, policy_num.shape[-1])
+                state = state.unsqueeze(1)
+                latent = latent.unsqueeze(1)
+                a_inputs = torch.cat((state, latent), dim=1)
+                hidden_actor = self.forward_actor(a_inputs, policy_num)
+                hidden_actor = hidden_actor.reshape(traj_len, batch_size, -1)
+                return self.critic_linear(hidden_critic), hidden_actor
+        else:
+            hidden_actor = self.forward_actor(inputs, policy_num) 
+            return self.critic_linear(hidden_critic), hidden_actor
 
     def act(self, state, latent, belief, task, policy_num=None, deterministic=False):
         """
@@ -231,8 +247,39 @@ class Policy(nn.Module):
         return value, action
 
     def get_value(self, state, latent, belief, task):
-        value, _ = self.forward(state, latent, belief, task)
-        return value
+        if self.pass_state_to_policy:
+            if self.norm_state:
+                state = (state - self.state_rms.mean) / torch.sqrt(self.state_rms.var + 1e-8)
+            if self.use_state_encoder:
+                state = self.state_encoder(state)
+        else:
+            state = torch.zeros(0, ).to(device)
+        if self.pass_latent_to_policy:
+            if self.norm_latent:
+                latent = (latent - self.latent_rms.mean) / torch.sqrt(self.latent_rms.var + 1e-8)
+            if self.use_latent_encoder:
+                latent = self.latent_encoder(latent)
+        else:
+            latent = torch.zeros(0, ).to(device)
+        if self.pass_belief_to_policy:
+            if self.norm_belief:
+                belief = (belief - self.belief_rms.mean) / torch.sqrt(self.belief_rms.var + 1e-8)
+            if self.use_belief_encoder:
+                belief = self.belief_encoder(belief.float())
+        else:
+            belief = torch.zeros(0, ).to(device)
+        if self.pass_task_to_policy:
+            if self.norm_task:
+                task = (task - self.task_rms.mean) / torch.sqrt(self.task_rms.var + 1e-8)
+            if self.use_task_encoder:
+                task = self.task_encoder(task.float())
+        else:
+            task = torch.zeros(0, ).to(device)
+
+        # concatenate inputs
+        inputs = torch.cat((state, latent, belief, task), dim=-1)
+        hidden_critic = self.forward_critic(inputs)
+        return self.critic_linear(hidden_critic)
 
     def update_rms(self, args, policy_storage):
         """ Update normalisation parameters for inputs with current data """

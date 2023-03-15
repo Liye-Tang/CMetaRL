@@ -82,12 +82,13 @@ class PPO:
 
         # call this to make sure that the action_log_probs are computed
         # (needs to be done right here because of some caching thing when normalising actions)
-        policy_storage.before_update(self.actor_critic)
+        policy_storage.before_update(self.actor_critic, cal_policy_num)
 
         value_loss_epoch = 0
         action_loss_epoch = 0
         dist_entropy_epoch = 0
         loss_epoch = 0
+        # print(self.actor_critic.attn_action_layer.policy_tokens) # TODO
         for e in range(self.ppo_epoch):
 
             data_generator = policy_storage.feed_forward_generator(advantages, self.num_mini_batch)
@@ -111,8 +112,11 @@ class PPO:
                 
                 if self.args.is_attn_policy:
                     policy_num_batch = cal_policy_num(latent_batch)
+                    policy_num_batch = policy_num_batch.detach()
                 else:
                     policy_num_batch = None
+                    
+                print(policy_num_batch)
 
                 # Reshape to do in a single forward pass for all steps
                 values, action_log_probs, dist_entropy = \

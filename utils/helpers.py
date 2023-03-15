@@ -102,7 +102,7 @@ def select_action(args,
     else:
         policy_num_batch = None
     
-    action = policy.act(state=state, latent=latent, belief=belief, task=task, deterministic=deterministic, policy_num_batch=policy_num_batch)
+    action = policy.act(state=state, latent=latent, belief=belief, task=task, deterministic=deterministic, policy_num=policy_num_batch)
     if isinstance(action, list) or isinstance(action, tuple):
         value, action = action
     else:

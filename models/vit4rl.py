@@ -66,7 +66,7 @@ class Block(nn.Module):
 
 class VisionTransformer(nn.Module):
 
-    def __init__(self, num_input_tokens=2, num_policy_tokens=10, embed_dim=6*64, depth=3,
+    def __init__(self, input_dim, num_input_tokens=2, num_policy_tokens=10, embed_dim=6*64, depth=3,
                  mlp_ratio=4., qkv_bias=True, norm_layer=None, out_feature_dim=None, num_heads=6,
                  act_layer=None):
         super().__init__()
@@ -76,11 +76,12 @@ class VisionTransformer(nn.Module):
         self.num_policy_tokens = num_policy_tokens
         self.num_features = self.embed_dim = embed_dim
         self.out_feature_dim = out_feature_dim
-        
+        self.input_dim = input_dim
         self.num_heads = num_heads
         
         # init the policy and the cls token
-        self.policy_tokens = [nn.Parameter(torch.zeros(1, 1, embed_dim)).to(device) for i in range(self.num_policy_tokens)]
+        self.policy_tokens = nn.Parameter(torch.zeros(1, self.num_policy_tokens, embed_dim))
+        # self.policy_tokens = [nn.Parameter(torch.zeros(1, 1, embed_dim)).to(device) for i in range(self.num_policy_tokens)]
         
         # action
         norm_layer = norm_layer or partial(nn.LayerNorm, eps=1e-6)
@@ -96,14 +97,16 @@ class VisionTransformer(nn.Module):
 
         self.norm = norm_layer(embed_dim)
 
+        self.input_layer = nn.Linear(self.input_dim, self.num_features)
         self.output_layer = nn.Linear(self.num_features, self.out_feature_dim)
 
         self.init_weights()
 
     def init_weights(self):
         trunc_normal_(self.pos_embed, std=.02)
-        for policy_token in self.policy_tokens:
-            trunc_normal_(policy_token, std=.02)
+        # for policy_token in self.policy_tokens:
+        #     trunc_normal_(policy_token, std=.02)
+        trunc_normal_(self.policy_tokens, std=.02)
         self.apply(_init_vit_weights)
 
     def _init_weights(self, m):
@@ -111,11 +114,16 @@ class VisionTransformer(nn.Module):
         _init_vit_weights(m)
 
     def forward(self, x, token_num):
-        x = torch.cat((*self.policy_tokens, x), dim=1)
+        x = self.input_layer(x)
+        # policy_tokens = [policy_token.expand(x.shape[0], -1, -1) for policy_token in self.policy_tokens]
+        policy_tokens = self.policy_tokens.expand(x.shape[0], -1, -1)
+        # print(self.policy_tokens)
+        x = torch.cat((policy_tokens, x), dim=1)
         x = x + self.pos_embed
         x = self.low_blocks(x)
         x = self.norm(x)
-        return self.output_layer(x[:, token_num])
+        x = x[torch.arange(token_num.shape[0]).to(device), token_num.squeeze(1)]
+        return self.output_layer(x)
 
 
 def _init_vit_weights(module: nn.Module, name: str = '', head_bias: float = 0., jax_impl: bool = False):

@@ -12,6 +12,7 @@ import torch.nn.functional as F
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+
 class Cluster:
     def __init__(self, args, encoder, rollout_storage, logger, get_iter_idx):
         self.args = args
@@ -124,12 +125,9 @@ class Cluster:
             self.logger.add('cluster_losses/cluster', cluster_loss, curr_iter_idx)
             
     def cal_policy_num(self, latent):
-        latent = latent.reshape(-1, self.latent_dim)
-        embedding = F.normalize(latent, dim=1, p=2)
+        # latent = latent.reshape(-1, self.latent_dim)
+        embedding = F.normalize(latent, dim=-1, p=2)
         scores = self.proto_proj(embedding)
-        log_prob = F.log_softmax(scores / self.args.temperature, dim=1)
-        policy_nums = cal_nums_with_scores(log_prob)
-        
-        
-def cal_nums_with_scores(scores):
-    return None
+        log_prob = F.log_softmax(scores / self.args.temperature, dim=-1)
+        policy_nums = torch.max(log_prob, dim=-1)[1].unsqueeze(-1)
+        return policy_nums
