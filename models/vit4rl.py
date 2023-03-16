@@ -66,7 +66,7 @@ class Block(nn.Module):
 
 class VisionTransformer(nn.Module):
 
-    def __init__(self, input_dim, num_input_tokens=2, num_policy_tokens=10, embed_dim=6*64, depth=3,
+    def __init__(self, input_dim, num_input_tokens=2, num_policy_tokens=10, embed_dim=6*64, depth=2,
                  mlp_ratio=4., qkv_bias=True, norm_layer=None, out_feature_dim=None, num_heads=6,
                  act_layer=None):
         super().__init__()
@@ -90,6 +90,18 @@ class VisionTransformer(nn.Module):
         self.pos_embed = nn.Parameter(torch.zeros(1, self.num_input_tokens + self.num_policy_tokens, embed_dim))
         
         self.low_blocks = nn.Sequential(*[
+            Block(
+                dim=embed_dim, num_heads=num_heads, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, norm_layer=norm_layer,
+                act_layer=act_layer)
+            for i in range(int(depth))])
+        
+        self.mid_blocks = nn.Sequential(*[
+            Block(
+                dim=embed_dim, num_heads=num_heads, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, norm_layer=norm_layer,
+                act_layer=act_layer)
+            for i in range(int(depth))])
+        
+        self.top_blocks = nn.Sequential(*[
             Block(
                 dim=embed_dim, num_heads=num_heads, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, norm_layer=norm_layer,
                 act_layer=act_layer)
@@ -121,7 +133,10 @@ class VisionTransformer(nn.Module):
         x = torch.cat((policy_tokens, x), dim=1)
         x = x + self.pos_embed
         x = self.low_blocks(x)
+        x = self.mid_blocks(x)
+        x = self.top_blocks(x)
         x = self.norm(x)
+        
         x = x[torch.arange(token_num.shape[0]).to(device), token_num.squeeze(1)]
         return self.output_layer(x)
 

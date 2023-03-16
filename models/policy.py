@@ -49,7 +49,7 @@ class Policy(nn.Module):
                  action_space,
                  init_std,
                  is_attn_policy=False,
-                 num_policy_tokens=2,
+                 num_policy_tokens=5,
                  ):
         """
         The policy can get any of these as input:

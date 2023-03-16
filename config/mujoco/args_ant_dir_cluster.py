@@ -76,9 +76,9 @@ def get_args(rest_args):
 
     # general
     parser.add_argument('--lr_vae', type=float, default=0.001)
-    parser.add_argument('--size_vae_buffer', type=int, default=10000,
+    parser.add_argument('--size_vae_buffer', type=int, default=5000,
                         help='how many trajectories (!) to keep in VAE buffer')
-    parser.add_argument('--precollect_len', type=int, default=5000,
+    parser.add_argument('--precollect_len', type=int, default=1000000,
                         help='how many frames to pre-collect before training begins (useful to fill VAE buffer)')
     parser.add_argument('--vae_buffer_add_thresh', type=float, default=1,
                         help='probability of adding a new trajectory to buffer')
@@ -140,14 +140,14 @@ def get_args(rest_args):
     parser.add_argument('--task_pred_type', type=str, default='task_id', help='choose: task_id, task_description')
 
     # --- CLUSTER TRAINING ---
-    parser.add_argument('--num_prototypes', type=int, default=2, help='the num of the classes: K')
+    parser.add_argument('--num_prototypes', type=int, default=5, help='the num of the classes: K')
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
-    parser.add_argument('--lr_cluster', type=float, default=0.0005, help='the sinkhorn param')
+    parser.add_argument('--lr_cluster', type=float, default=0.001, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=1000, help='num_traj for the cluster')
-    parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
-    parser.add_argument('--num_cluster_updates', type=int, default=2, help='')
+    parser.add_argument('--sinkhorn_iterations', type=int, default=10, help='')
+    parser.add_argument('--num_cluster_updates', type=int, default=3, help='')
     parser.add_argument('--is_attn_policy', type=bool, default=True, help='')
 
     # --- ABLATIONS ---

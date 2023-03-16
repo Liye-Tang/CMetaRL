@@ -115,8 +115,6 @@ class PPO:
                     policy_num_batch = policy_num_batch.detach()
                 else:
                     policy_num_batch = None
-                    
-                print(policy_num_batch)
 
                 # Reshape to do in a single forward pass for all steps
                 values, action_log_probs, dist_entropy = \

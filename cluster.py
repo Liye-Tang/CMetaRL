@@ -64,7 +64,8 @@ class Cluster:
                                                         return_prior=False,
                                                         detach_every=self.args.tbptt_stepsize if hasattr(self.args, 'tbptt_stepsize') else None,
                                                         )
-        latent_mean = latent_mean[5:]
+        # latent_mean = latent_mean[5:]
+        latent_mean = torch.cat([latent_mean[:trajectory_lens[i]-1, i] for i in range(100)], dim=0)
         latent = latent_mean.reshape(-1, self.latent_dim)
 
         embedding = F.normalize(latent, dim=1, p=2)
