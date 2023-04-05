@@ -119,3 +119,10 @@ register(
     kwargs={},
     max_episode_steps=200
 )
+
+register(
+    'ML45-v0',
+    entry_point='environments.meta_world.ml45:ML45',
+    kwargs={},
+    max_episode_steps=500
+)

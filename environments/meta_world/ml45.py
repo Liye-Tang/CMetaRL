@@ -18,6 +18,7 @@ class ML45(gym.Env):
         
         self.observation_space = None
         self.action_space = None
+        self._max_episode_steps = 500
         
         # reset the the task and reset initial state
         self.reset_task()
@@ -40,7 +41,7 @@ class ML45(gym.Env):
         
 
     def get_task(self):
-        return self.current_task
+        return 0
 
     def reset_task(self, task=None):
         """
@@ -60,8 +61,8 @@ if __name__ == '__main__':
     for i in range(10):
         env.reset_task()
         for step in range(200):
-                a = env.action_space.sample()
-                print(env.action_space)
-                obs, reward, done, info = env.step(a)
-                # print(obs)
-                # env.render()
+            a = env.action_space.sample()
+            print(env.action_space)
+            obs, reward, done, info = env.step(a)
+            print(reward)
+            # env.render()
