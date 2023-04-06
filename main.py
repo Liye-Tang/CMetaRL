@@ -4,7 +4,7 @@ Takes a flag --env-type (see below for choices) and loads the parameters from th
 """
 import utils.gol as gol
 gol._init()
-gol.set_value('device', 'cuda:1')
+gol.set_value('device', 'cuda:0')
 import argparse
 import warnings
 
@@ -34,7 +34,7 @@ from metalearner import MetaLearner
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env-type', default='ml45_cluster')
+    parser.add_argument('--env-type', default='ml45_varibad')
     # parser.add_argument('--env-type', default='pointrobot_varibad')
     args, rest_args = parser.parse_known_args()
     env = args.env_type

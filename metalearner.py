@@ -85,7 +85,8 @@ class MetaLearner:
 
         # initialise VAE and policy
         self.vae = VaribadVAE(self.args, self.logger, lambda: self.iter_idx)
-        self.cluster = Cluster(self.args, self.vae.encoder, self.vae.rollout_storage, self.logger, lambda: self.iter_idx)
+        if not self.args.disable_cluster:
+            self.cluster = Cluster(self.args, self.vae.encoder, self.vae.rollout_storage, self.logger, lambda: self.iter_idx)
         self.policy_storage = self.initialise_policy_storage()
         self.policy = self.initialise_policy()
 
