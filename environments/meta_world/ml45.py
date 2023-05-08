@@ -58,11 +58,13 @@ class ML45(gym.Env):
 
 if __name__ == '__main__':
     env = ML45()
-    for i in range(10):
+    for i in range(100):
         env.reset_task()
-        for step in range(200):
+        epi_return =0
+        for step in range(500):
             a = env.action_space.sample()
-            print(env.action_space)
+            # print(env.action_space)
             obs, reward, done, info = env.step(a)
-            print(reward)
-            # env.render()
+            epi_return += reward
+        print(epi_return)
+        

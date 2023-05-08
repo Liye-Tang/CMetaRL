@@ -10,7 +10,7 @@ def get_args(rest_args):
     parser.add_argument('--num_frames', type=int, default=1e8, help='number of frames to train')
     parser.add_argument('--max_rollouts_per_task', type=int, default=2, help='number of MDP episodes for adaptation')
     parser.add_argument('--exp_label', default='varibad', help='label (typically name of method)')
-    parser.add_argument('--env_name', default='HalfCheetahVel-v0', help='environment to train on')
+    parser.add_argument('--env_name', default='HalfCheetahVelCluster-v0', help='environment to train on')
 
     # --- POLICY ---
 
@@ -152,6 +152,9 @@ def get_args(rest_args):
                         help='only decoder past observations, not the future')
     parser.add_argument('--kl_to_gauss_prior', type=boolean_argument, default=False,
                         help='KL term in ELBO to fixed Gaussian prior (instead of prev approx posterior)')
+    
+    # for the cluster loss
+    parser.add_argument('--disable_cluster', type=boolean_argument, default=True, help='dont use the cluster loss')
 
     # combining vae and RL loss
     parser.add_argument('--rlloss_through_encoder', type=boolean_argument, default=False,

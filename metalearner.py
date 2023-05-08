@@ -87,6 +87,8 @@ class MetaLearner:
         self.vae = VaribadVAE(self.args, self.logger, lambda: self.iter_idx)
         if not self.args.disable_cluster:
             self.cluster = Cluster(self.args, self.vae.encoder, self.vae.rollout_storage, self.logger, lambda: self.iter_idx)
+        else:
+            self.cluster = None
         self.policy_storage = self.initialise_policy_storage()
         self.policy = self.initialise_policy()
 
@@ -178,7 +180,7 @@ class MetaLearner:
                 use_clipped_value_loss=self.args.ppo_use_clipped_value_loss,
                 clip_param=self.args.ppo_clip_param,
                 optimiser_vae=self.vae.optimiser_vae,
-                optimiser_cluster=self.cluster.optimiser_cluster,
+                optimiser_cluster=self.cluster.optimiser_cluster if not self.args.disable_cluster else None,
             )
         else:
             raise NotImplementedError
@@ -381,7 +383,7 @@ class MetaLearner:
                 encoder=self.vae.encoder,
                 rlloss_through_encoder=self.args.rlloss_through_encoder,
                 compute_vae_loss=self.vae.compute_vae_loss,
-                compute_cluster_loss=self.cluster.compute_cluster_loss)
+                compute_cluster_loss=None if self.args.disable_cluster else self.cluster.compute_cluster_loss)
         else:
             policy_train_stats = 0, 0, 0, 0
 
@@ -456,7 +458,8 @@ class MetaLearner:
 
                 torch.save(self.policy.actor_critic, os.path.join(save_path, f"policy{idx_label}.pt"))
                 torch.save(self.vae.encoder, os.path.join(save_path, f"encoder{idx_label}.pt"))
-                torch.save(self.cluster.proto_proj, os.path.join(save_path, f"proto_proj{idx_label}.pt"))
+                if self.cluster is not None:
+                    torch.save(self.cluster.proto_proj, os.path.join(save_path, f"proto_proj{idx_label}.pt"))
                 if self.vae.state_decoder is not None:
                     torch.save(self.vae.state_decoder, os.path.join(save_path, f"state_decoder{idx_label}.pt"))
                 if self.vae.reward_decoder is not None:

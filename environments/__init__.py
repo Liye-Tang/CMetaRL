@@ -30,6 +30,14 @@ register(
 )
 
 register(
+    'AntGoalCluster-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.ant_goal_cluster:AntGoalClusterEnv',
+            'max_episode_steps': 200},
+    max_episode_steps=200
+)
+
+register(
     'HalfCheetahDir-v0',
     entry_point='environments.wrappers:mujoco_wrapper',
     kwargs={'entry_point': 'environments.mujoco.half_cheetah_dir:HalfCheetahDirEnv',
@@ -41,6 +49,14 @@ register(
     'HalfCheetahVel-v0',
     entry_point='environments.wrappers:mujoco_wrapper',
     kwargs={'entry_point': 'environments.mujoco.half_cheetah_vel:HalfCheetahVelEnv',
+            'max_episode_steps': 200},
+    max_episode_steps=200
+)
+
+register(
+    'HalfCheetahVelCluster-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.half_cheetah_vel_cluster:HalfCheetahVelClusterEnv',
             'max_episode_steps': 200},
     max_episode_steps=200
 )
@@ -108,6 +124,13 @@ register(
 register(
     'MultiGoalEnv-v0',
     entry_point='environments.pathfollow.multigoal:MultiGoalEnv',
+    kwargs={},
+    max_episode_steps=200
+)
+
+register(
+    'MultiGoalClusterEnv-v0',
+    entry_point='environments.pathfollow.multigoal_cluster:MultiGoalClusterEnv',
     kwargs={},
     max_episode_steps=200
 )

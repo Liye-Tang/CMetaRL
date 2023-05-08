@@ -10,7 +10,7 @@ def get_args(rest_args):
     parser.add_argument('--num_frames', type=int, default=1e8, help='number of frames to train')
     parser.add_argument('--max_rollouts_per_task', type=int, default=2, help='number of MDP episodes for adaptation')
     parser.add_argument('--exp_label', default='varibad', help='label (typically name of method)')
-    parser.add_argument('--env_name', default='HalfCheetahVel-v0', help='environment to train on')
+    parser.add_argument('--env_name', default='HalfCheetahVelCluster-v0', help='environment to train on')
 
     # --- POLICY ---
 
@@ -140,11 +140,11 @@ def get_args(rest_args):
     parser.add_argument('--task_pred_type', type=str, default='task_id', help='choose: task_id, task_description')
     
     # - for the cluster
-    parser.add_argument('--num_prototypes', type=int, default=10, help='the num of the classes: K')
+    parser.add_argument('--num_prototypes', type=int, default=5, help='the num of the classes: K')
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
-    parser.add_argument('--lr_cluster', type=float, default=0.00002, help='the sinkhorn param')
+    parser.add_argument('--lr_cluster', type=float, default=0.1, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
     parser.add_argument('--num_cluster_updates', type=int, default=3, help='')
