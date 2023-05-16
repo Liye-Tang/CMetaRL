@@ -74,16 +74,20 @@ class MultiGoalClusterEnv(gym.Env):
         return self.obs * self.obs_scale
 
     def reset_task(self, task=None):
-        if task is None:
-            goal_x = random.uniform(Para.GOAL_X_LOW, Para.GOAL_X_UP)
-            goal_y = random.uniform(Para.GOAL_Y_LOW, Para.GOAL_Y_UP)
-            if goal_x > 0:
-                goal_phi = random.uniform(Para.GOAL_PHI_LOW, 90)
-            else:
-                goal_phi = random.uniform(90, Para.GOAL_PHI_UP)
-            self.goal_point = goal_x, goal_y, goal_phi
-        else:
-            self.goal_point = task
+        # if task is None:
+        #     goal_x = random.uniform(Para.GOAL_X_LOW, Para.GOAL_X_UP)
+        #     goal_y = random.uniform(Para.GOAL_Y_LOW, Para.GOAL_Y_UP)
+        #     if goal_x > 0:
+        #         goal_phi = random.uniform(Para.GOAL_PHI_LOW, 90)
+        #     else:
+        #         goal_phi = random.uniform(90, Para.GOAL_PHI_UP)
+        #     self.goal_point = goal_x, goal_y, goal_phi
+        # else:
+        #     self.goal_point = task
+        group1 = [0, 50, 90]
+        group2 = [40, 50, 0]
+        group3 = [-40, 50, 180]
+        self.goal_point = random.choice([group1, group2, group3])
         self.ref_path = ReferencePath(self.goal_point)
         return self.goal_point
 

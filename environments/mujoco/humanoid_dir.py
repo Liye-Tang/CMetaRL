@@ -84,4 +84,4 @@ class HumanoidDirEnv(HumanoidEnv):
         return np.array([self._goal])
 
     def sample_tasks(self, num_tasks):
-        return [random.uniform(0., 2.0 * np.pi) for _ in range(num_tasks)]
+        return [random.choice([0., 0.5 * np.pi, 1 * np.pi, 1.5 * np.pi]) for _ in range(num_tasks)]

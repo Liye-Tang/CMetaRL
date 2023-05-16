@@ -252,13 +252,13 @@ class MetaLearner:
 
                 # before resetting, update the embedding and add to vae buffer
                 # (last state might include useful task info)
-                if not (self.args.disable_decoder and self.args.disable_kl_term):
-                    self.vae.rollout_storage.insert(prev_state.clone(),
-                                                    action.detach().clone(),
-                                                    next_state.clone(),
-                                                    rew_raw.clone(),
-                                                    done.clone(),
-                                                    task.clone() if task is not None else None)
+                # if not (self.args.disable_decoder and self.args.disable_kl_term):
+                self.vae.rollout_storage.insert(prev_state.clone(),
+                                                action.detach().clone(),
+                                                next_state.clone(),
+                                                rew_raw.clone(),
+                                                done.clone(),
+                                                task.clone() if task is not None else None)
 
                 # add the obs before reset to the policy storage  TODO: the difference between polcy storage and policy buffer
                 self.policy_storage.next_state[step] = next_state.clone()

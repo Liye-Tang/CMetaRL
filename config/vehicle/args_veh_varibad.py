@@ -16,7 +16,7 @@ def get_args(rest_args):
 
     # what to pass to the policy (note this is after the encoder)
     parser.add_argument('--pass_state_to_policy', type=boolean_argument, default=True, help='condition policy on state')
-    parser.add_argument('--pass_latent_to_policy', type=boolean_argument, default=False, help='condition policy on VAE latent')
+    parser.add_argument('--pass_latent_to_policy', type=boolean_argument, default=True, help='condition policy on VAE latent')
     parser.add_argument('--pass_belief_to_policy', type=boolean_argument, default=False, help='condition policy on ground-truth belief')
     parser.add_argument('--pass_task_to_policy', type=boolean_argument, default=False, help='condition policy on ground-truth task description')
 
@@ -78,7 +78,7 @@ def get_args(rest_args):
     parser.add_argument('--lr_vae', type=float, default=0.00001)
     parser.add_argument('--size_vae_buffer', type=int, default=10000,
                         help='how many trajectories (!) to keep in VAE buffer')
-    parser.add_argument('--precollect_len', type=int, default=100000,
+    parser.add_argument('--precollect_len', type=int, default=5000,
                         help='how many frames to pre-collect before training begins (useful to fill VAE buffer)')
     parser.add_argument('--vae_buffer_add_thresh', type=float, default=1,
                         help='probability of adding a new trajectory to buffer')
@@ -145,7 +145,7 @@ def get_args(rest_args):
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
-    parser.add_argument('--lr_cluster', type=float, default=0.0002, help='the sinkhorn param')
+    parser.add_argument('--lr_cluster', type=float, default=0.00001, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
     parser.add_argument('--num_cluster_updates', type=int, default=3, help='')
@@ -159,7 +159,7 @@ def get_args(rest_args):
                         help='train without decoder')
     parser.add_argument('--disable_stochasticity_in_latent', type=boolean_argument, default=False,
                         help='use auto-encoder (non-variational)')
-    parser.add_argument('--disable_kl_term', type=boolean_argument, default=False,
+    parser.add_argument('--disable_kl_term', type=boolean_argument, default=True,
                         help='dont use the KL regularising loss term')
     parser.add_argument('--decode_only_past', type=boolean_argument, default=False,
                         help='only decoder past observations, not the future')
@@ -182,7 +182,7 @@ def get_args(rest_args):
                         help='sample embedding for policy, instead of full belief')
 
     # for other things
-    parser.add_argument('--disable_metalearner', type=boolean_argument, default=True,
+    parser.add_argument('--disable_metalearner', type=boolean_argument, default=False,
                         help='Train feedforward policy')
     parser.add_argument('--single_task_mode', type=boolean_argument, default=False,
                         help='train policy on one (randomly chosen) environment only')
