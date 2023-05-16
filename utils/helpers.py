@@ -119,13 +119,14 @@ def get_latent_for_policy(args, latent_sample=None, latent_mean=None, latent_log
         latent_mean = F.relu(latent_mean)
         latent_logvar = F.relu(latent_logvar)
 
-    if args.sample_embeddings:
-        latent = latent_sample
-    else:
-        if args.disable_cluster:
-            latent = torch.cat((latent_mean, latent_logvar), dim=-1)
-        else:
-            latent = latent_mean
+    # if args.sample_embeddings:
+    #     latent = latent_sample
+    # else:
+    #     if args.disable_cluster:
+    #         latent = torch.cat((latent_mean, latent_logvar), dim=-1)
+    #     else:
+    #         latent = latent_mean
+    latent = latent_mean
 
     if latent.shape[0] == 1:
         latent = latent.squeeze(0)

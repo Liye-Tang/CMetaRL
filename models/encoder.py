@@ -70,7 +70,7 @@ class RNNEncoder(nn.Module):
 
         # output layer
         self.fc_mu = nn.Linear(curr_input_dim, latent_dim)
-        self.fc_logvar = nn.Linear(curr_input_dim, latent_dim)
+        # self.fc_logvar = nn.Linear(curr_input_dim, latent_dim)
 
     def _sample_gaussian(self, mu, logvar, num=None):
         if num is None:
@@ -108,13 +108,13 @@ class RNNEncoder(nn.Module):
 
         # outputs
         latent_mean = self.fc_mu(h)
-        latent_logvar = self.fc_logvar(h)
-        if sample:
-            latent_sample = self.reparameterise(latent_mean, latent_logvar)
-        else:
-            latent_sample = latent_mean
+        # latent_logvar = self.fc_logvar(h)
+        # if sample:
+        #     latent_sample = self.reparameterise(latent_mean, latent_logvar)
+        # else:
+        latent_sample = latent_mean
 
-        return latent_sample, latent_mean, latent_logvar, hidden_state
+        return latent_sample, latent_mean, torch.zeros_like(latent_mean), hidden_state
 
     def forward(self, actions, states, rewards, hidden_state, return_prior, sample=True, detach_every=None):
         """
@@ -170,11 +170,12 @@ class RNNEncoder(nn.Module):
 
         # outputs
         latent_mean = self.fc_mu(gru_h)
-        latent_logvar = self.fc_logvar(gru_h)
-        if sample:
-            latent_sample = self.reparameterise(latent_mean, latent_logvar)
-        else:
-            latent_sample = latent_mean
+        latent_logvar = torch.zeros_like(latent_mean)
+        # if sample:
+        #     latent_sample = self.reparameterise(latent_mean, latent_logvar)
+        # else:
+        #     latent_sample = latent_mean
+        latent_sample = latent_mean
 
         if return_prior:
             latent_sample = torch.cat((prior_sample, latent_sample))

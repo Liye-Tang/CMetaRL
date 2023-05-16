@@ -70,7 +70,7 @@ class VaribadVAE:
         self.get_iter_idx = get_iter_idx
         self.proto_proj = nn.Linear(in_features=self.latent_dim, out_features=self.num_prototypes, bias=False).to(device)
         
-        self.optimiser_vae = torch.optim.Adam([*self.encoder.parameters(), *decoder_params(), self.proto_proj], lr=self.args.lr_vae)
+        self.optimiser_vae = torch.optim.Adam([*self.encoder.parameters(), *decoder_params, *self.proto_proj.parameters()], lr=self.args.lr_vae)
 
     def initialise_encoder(self):
         """ Initialises and returns an RNN encoder """
@@ -97,8 +97,8 @@ class VaribadVAE:
 
         latent_dim = self.args.latent_dim
         # if we don't sample embeddings for the decoder, we feed in mean & variance
-        if self.args.disable_stochasticity_in_latent:
-            latent_dim *= 2
+        # if self.args.disable_stochasticity_in_latent:
+        #     latent_dim *= 2
 
         # initialise state decoder for VAE
         if self.args.decode_state:
@@ -283,11 +283,12 @@ class VaribadVAE:
         vae_rewards = vae_rewards[:max_traj_len]
 
         # take one sample for each ELBO term
-        if not self.args.disable_stochasticity_in_latent:
-            latent_samples = self.encoder._sample_gaussian(latent_mean, latent_logvar)
-        else:
-            latent_samples = latent_mean
+        # if not self.args.disable_stochasticity_in_latent:
+        #     latent_samples = self.encoder._sample_gaussian(latent_mean, latent_logvar)
+        # else:
+        #     latent_samples = latent_mean
             # latent_samples = torch.cat((latent_mean, latent_logvar), dim=-1)
+        latent_samples = latent_mean
 
         num_elbos = latent_samples.shape[0]
         num_decodes = vae_prev_obs.shape[0]
@@ -435,11 +436,12 @@ class VaribadVAE:
             curr_means = latent_mean[idx_elbo]
             curr_logvars = latent_logvar[idx_elbo]
 
-            # take one sample for each task
-            if not self.args.disable_stochasticity_in_latent:
-                curr_samples = self.encoder._sample_gaussian(curr_means, curr_logvars)
-            else:
-                curr_samples = torch.cat((latent_mean, latent_logvar))
+            # # take one sample for each task
+            # if not self.args.disable_stochasticity_in_latent:
+            #     curr_samples = self.encoder._sample_gaussian(curr_means, curr_logvars)
+            # else:
+            #     curr_samples = torch.cat((latent_mean, latent_logvar))
+            curr_samples = curr_means
 
             # if the size of what we decode is always the same, we can speed up creating the batches
             if not self.args.decode_only_past:
@@ -567,7 +569,10 @@ class VaribadVAE:
                                        vae_rewards, vae_tasks, trajectory_lens)
         rew_reconstruction_loss, state_reconstruction_loss, task_reconstruction_loss, kl_loss = losses
 
-        cluster_loss = self.compute_cluster_loss()
+        if not self.args.disable_cluster:
+            cluster_loss = self.compute_cluster_loss()
+        else:
+            cluster_loss = 0
         # VAE loss = KL loss + reward reconstruction + state transition reconstruction
         # take average (this is the expectation over p(M))
         loss = (self.args.rew_loss_coeff * rew_reconstruction_loss +
@@ -630,7 +635,7 @@ class VaribadVAE:
                                                         states=vae_next_obs,
                                                         rewards=vae_rewards,
                                                         hidden_state=None,
-                                                        return_prior=False,
+                                                        return_prior=True,
                                                         detach_every=self.args.tbptt_stepsize if hasattr(self.args, 'tbptt_stepsize') else None,
                                                         )
         latent_mean = latent_mean[5:]
@@ -696,4 +701,4 @@ class VaribadVAE:
             self.logger.add('vae_losses/sum', elbo_loss, curr_iter_idx)
 
             if not self.args.disable_cluster:
-                self.logger.add('vae_losses/sum', elbo_loss, curr_iter_idx)
+                self.logger.add('vae_losses/cluster', cluster_loss, curr_iter_idx)

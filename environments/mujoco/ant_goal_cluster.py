@@ -36,19 +36,19 @@ class AntGoalClusterEnv(AntEnv):
 
     def sample_tasks(self, num_tasks):
         a = np.array([random.uniform(1/16, 3/16) for _ in range(num_tasks)]) * 2 * np.pi
-        r = 3 * np.array([random.uniform(0.5, 1) for _ in range(num_tasks)]) ** 0.5
+        r = 3
         group1 = np.stack((r * np.cos(a), r * np.sin(a)), axis=-1)
         
         a = np.array([random.uniform(5/16, 7/16) for _ in range(num_tasks)]) * 2 * np.pi
-        r = 3 * np.array([random.uniform(0.5, 1) for _ in range(num_tasks)]) ** 0.5
+        r = 3
         group2 = np.stack((r * np.cos(a), r * np.sin(a)), axis=-1)
         
         a = np.array([random.uniform(9/16, 11/16) for _ in range(num_tasks)]) * 2 * np.pi
-        r = 3 * np.array([random.uniform(0.5, 1) for _ in range(num_tasks)]) ** 0.5
+        r = 3
         group3 = np.stack((r * np.cos(a), r * np.sin(a)), axis=-1)
         
         a = np.array([random.uniform(13/16, 15/16) for _ in range(num_tasks)]) * 2 * np.pi
-        r = 3 * np.array([random.uniform(0.5, 1) for _ in range(num_tasks)]) ** 0.5
+        r = 3
         group4 = np.stack((r * np.cos(a), r * np.sin(a)), axis=-1)
         
         return random.choice([group1, group2, group3, group4])

@@ -382,8 +382,7 @@ class MetaLearner:
                 policy_storage=self.policy_storage,
                 encoder=self.vae.encoder,
                 rlloss_through_encoder=self.args.rlloss_through_encoder,
-                compute_vae_loss=self.vae.compute_vae_loss,
-                compute_cluster_loss=None if self.args.disable_cluster else self.cluster.compute_cluster_loss)
+                compute_vae_loss=self.vae.compute_vae_loss)
         else:
             policy_train_stats = 0, 0, 0, 0
 
@@ -395,25 +394,25 @@ class MetaLearner:
 
     def log(self, run_stats, train_stats, start_time):
 
-        # --- visualise behaviour of policy ---
+        # # --- visualise behaviour of policy ---
 
-        if (self.iter_idx + 1) % self.args.vis_interval == 0:
-            ret_rms = self.envs.venv.ret_rms if self.args.norm_rew_for_policy else None
-            utl_eval.visualise_behaviour(args=self.args,
-                                         policy=self.policy,
-                                         image_folder=self.logger.full_output_folder,
-                                         iter_idx=self.iter_idx,
-                                         ret_rms=ret_rms,
-                                         encoder=self.vae.encoder,
-                                         reward_decoder=self.vae.reward_decoder,
-                                         state_decoder=self.vae.state_decoder,
-                                         task_decoder=self.vae.task_decoder,
-                                         compute_rew_reconstruction_loss=self.vae.compute_rew_reconstruction_loss,
-                                         compute_state_reconstruction_loss=self.vae.compute_state_reconstruction_loss,
-                                         compute_task_reconstruction_loss=self.vae.compute_task_reconstruction_loss,
-                                         compute_kl_loss=self.vae.compute_kl_loss,
-                                         tasks=self.train_tasks,
-                                         )
+        # if (self.iter_idx + 1) % self.args.vis_interval == 0:
+        #     ret_rms = self.envs.venv.ret_rms if self.args.norm_rew_for_policy else None
+        #     utl_eval.visualise_behaviour(args=self.args,
+        #                                  policy=self.policy,
+        #                                  image_folder=self.logger.full_output_folder,
+        #                                  iter_idx=self.iter_idx,
+        #                                  ret_rms=ret_rms,
+        #                                  encoder=self.vae.encoder,
+        #                                  reward_decoder=self.vae.reward_decoder,
+        #                                  state_decoder=self.vae.state_decoder,
+        #                                  task_decoder=self.vae.task_decoder,
+        #                                  compute_rew_reconstruction_loss=self.vae.compute_rew_reconstruction_loss,
+        #                                  compute_state_reconstruction_loss=self.vae.compute_state_reconstruction_loss,
+        #                                  compute_task_reconstruction_loss=self.vae.compute_task_reconstruction_loss,
+        #                                  compute_kl_loss=self.vae.compute_kl_loss,
+        #                                  tasks=self.train_tasks,
+        #                                  )
 
         # --- evaluate policy ----
 
@@ -458,14 +457,14 @@ class MetaLearner:
 
                 torch.save(self.policy.actor_critic, os.path.join(save_path, f"policy{idx_label}.pt"))
                 torch.save(self.vae.encoder, os.path.join(save_path, f"encoder{idx_label}.pt"))
-                if self.cluster is not None:
-                    torch.save(self.cluster.proto_proj, os.path.join(save_path, f"proto_proj{idx_label}.pt"))
                 if self.vae.state_decoder is not None:
                     torch.save(self.vae.state_decoder, os.path.join(save_path, f"state_decoder{idx_label}.pt"))
                 if self.vae.reward_decoder is not None:
                     torch.save(self.vae.reward_decoder, os.path.join(save_path, f"reward_decoder{idx_label}.pt"))
                 if self.vae.task_decoder is not None:
                     torch.save(self.vae.task_decoder, os.path.join(save_path, f"task_decoder{idx_label}.pt"))
+                if self.vae.proto_proj is not None:
+                    torch.save(self.vae.proto_proj, os.path.join(save_path, f"proto_proj{idx_label}.pt"))
 
                 # save normalisation params of envs
                 if self.args.norm_rew_for_policy:

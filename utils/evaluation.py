@@ -427,6 +427,7 @@ def plot_vae_loss(args,
             latent_samples = utl.sample_gaussian(curr_latent_mean.view(-1), curr_latent_logvar.view(-1), num_samples)
         else:
             latent_samples = torch.cat((curr_latent_mean.view(-1), curr_latent_logvar.view(-1))).unsqueeze(0)
+        
 
         # expand: each latent sample will be used to make predictions for the entire trajectory
         len_traj = prev_obs.shape[1]
