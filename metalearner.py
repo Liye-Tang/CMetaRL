@@ -85,10 +85,10 @@ class MetaLearner:
 
         # initialise VAE and policy
         self.vae = VaribadVAE(self.args, self.logger, lambda: self.iter_idx)
-        if not self.args.disable_cluster:
-            self.cluster = Cluster(self.args, self.vae.encoder, self.vae.rollout_storage, self.logger, lambda: self.iter_idx)
-        else:
-            self.cluster = None
+        # if not self.args.disable_cluster:
+        #     self.cluster = Cluster(self.args, self.vae.encoder, self.vae.rollout_storage, self.logger, lambda: self.iter_idx)
+        # else:
+        #     self.cluster = None
         self.policy_storage = self.initialise_policy_storage()
         self.policy = self.initialise_policy()
 
@@ -180,7 +180,7 @@ class MetaLearner:
                 use_clipped_value_loss=self.args.ppo_use_clipped_value_loss,
                 clip_param=self.args.ppo_clip_param,
                 optimiser_vae=self.vae.optimiser_vae,
-                optimiser_cluster=self.cluster.optimiser_cluster if not self.args.disable_cluster else None,
+                # optimiser_cluster=self.cluster.optimiser_cluster if not self.args.disable_cluster else None,
             )
         else:
             raise NotImplementedError
