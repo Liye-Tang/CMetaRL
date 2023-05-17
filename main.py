@@ -4,7 +4,7 @@ Takes a flag --env-type (see below for choices) and loads the parameters from th
 """
 import utils.gol as gol
 gol._init()
-gol.set_value('device', 'cuda:0')
+gol.set_value('device', 'cpu')
 import argparse
 import warnings
 
