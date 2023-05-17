@@ -4,13 +4,14 @@ Takes a flag --env-type (see below for choices) and loads the parameters from th
 """
 import utils.gol as gol
 gol._init()
-gol.set_value('device', 'cuda:1')
+gol.set_value('device', 'cuda:0')
 import argparse
 import warnings
 
 import numpy as np
 import torch
-
+if hasattr(torch.cuda, 'empty_cache'):
+    torch.cuda.empty_cache()
 # get configs
 from config.gridworld import \
     args_grid_belief_oracle, args_grid_rl2, args_grid_varibad
@@ -34,7 +35,7 @@ from metalearner import MetaLearner
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env-type', default='ant_goal_cluster')
+    parser.add_argument('--env-type', default='vehicle_varibad')
     # parser.add_argument('--env-type', default='pointrobot_varibad')
     args, rest_args = parser.parse_known_args()
     env = args.env_type

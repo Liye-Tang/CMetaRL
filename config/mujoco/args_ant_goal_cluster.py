@@ -53,7 +53,7 @@ def get_args(rest_args):
     parser.add_argument('--ppo_clip_param', type=float, default=0.05, help='clamp param')
 
     # other hyperparameters
-    parser.add_argument('--lr_policy', type=float, default=1e-3, help='learning rate (default: 7e-4)')
+    parser.add_argument('--lr_policy', type=float, default=5e-4, help='learning rate (default: 7e-4)')
     parser.add_argument('--num_processes', type=int, default=16,
                         help='how many training CPU processes / parallel environments to use (default: 16)')
     parser.add_argument('--policy_num_steps', type=int, default=200,
@@ -140,13 +140,13 @@ def get_args(rest_args):
     parser.add_argument('--task_pred_type', type=str, default='task_id', help='choose: task_id, task_description')
     
     # --- CLUSTER TRAINING ---
-    parser.add_argument('--num_prototypes', type=int, default=10, help='the num of the classes: K')
+    parser.add_argument('--num_prototypes', type=int, default=4, help='the num of the classes: K')
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
-    parser.add_argument('--cluster_loss_coeff', type=float, default=0, help='weight for cluster loss (vs reward loss)')
+    parser.add_argument('--cluster_loss_coeff', type=float, default=100, help='weight for cluster loss (vs reward loss)')
 
     # --- ABLATIONS ---
 
