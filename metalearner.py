@@ -198,8 +198,8 @@ class MetaLearner:
         self.policy_storage.prev_state[0].copy_(prev_state)
 
         # log once before training
-        # with torch.no_grad():
-        #     self.log(None, None, start_time)
+        with torch.no_grad():
+            self.log(None, None, start_time)
 
         for self.iter_idx in range(self.num_updates):
 
