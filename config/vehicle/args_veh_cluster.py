@@ -78,7 +78,7 @@ def get_args(rest_args):
     parser.add_argument('--lr_vae', type=float, default=0.00001)
     parser.add_argument('--size_vae_buffer', type=int, default=10000,
                         help='how many trajectories (!) to keep in VAE buffer')
-    parser.add_argument('--precollect_len', type=int, default=5000,
+    parser.add_argument('--precollect_len', type=int, default=100000,
                         help='how many frames to pre-collect before training begins (useful to fill VAE buffer)')
     parser.add_argument('--vae_buffer_add_thresh', type=float, default=1,
                         help='probability of adding a new trajectory to buffer')
@@ -97,7 +97,7 @@ def get_args(rest_args):
     parser.add_argument('--num_vae_updates', type=int, default=5,
                         help='how many VAE update steps to take per meta-iteration')
     parser.add_argument('--pretrain_len', type=int, default=0, help='for how many updates to pre-train the VAE')
-    parser.add_argument('--kl_weight', type=float, default=0.0, help='weight for the KL term')
+    parser.add_argument('--kl_weight', type=float, default=0.1, help='weight for the KL term')
 
     parser.add_argument('--split_batches_by_task', type=boolean_argument, default=False,
                         help='split batches up by task (to save memory or if tasks are of different length)')
@@ -141,10 +141,11 @@ def get_args(rest_args):
 
 
     # --- CLUSTER TRAINING ---
-    parser.add_argument('--num_prototypes', type=int, default=5, help='the num of the classes: K')
+    parser.add_argument('--num_prototypes', type=int, default=10, help='the num of the classes: K')
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
+    parser.add_argument('--lr_cluster', type=float, default=0.0003, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
     parser.add_argument('--cluster_loss_coeff', type=float, default=10, help='weight for cluster loss (vs reward loss)')
@@ -193,7 +194,7 @@ def get_args(rest_args):
     parser.add_argument('--scale_punish_steer', type=float, default=1, help='None')
     parser.add_argument('--scale_punish_a_x', type=float, default=0.1, help='None')
     parser.add_argument('--reward_shift', type=float, default=2., help='None')
-    parser.add_argument('--N', type=int, default=1, help='the predictive horizon')
+    parser.add_argument('--N', type=int, default=5, help='the predictive horizon')
     parser.add_argument('--EXPECTED_V', type=float, default=3., help='expected velocity of vehicle')
     parser.add_argument('--num_max_step', type=int, default=200, help='the max episode steps of the env')
 
