@@ -148,7 +148,7 @@ def get_args(rest_args):
     parser.add_argument('--lr_cluster', type=float, default=0.0003, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
-    parser.add_argument('--cluster_loss_coeff', type=float, default=0, help='weight for cluster loss (vs reward loss)')
+    parser.add_argument('--cluster_loss_coeff', type=float, default=100, help='weight for cluster loss (vs reward loss)')
 
     # --- ABLATIONS ---
 
