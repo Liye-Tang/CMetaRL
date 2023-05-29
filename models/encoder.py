@@ -108,11 +108,15 @@ class RNNEncoder(nn.Module):
 
         # outputs
         latent_mean = self.fc_mu(h)
-        latent_logvar = self.fc_logvar(h)
-        if sample:
-            latent_sample = self.reparameterise(latent_mean, latent_logvar)
+        if self.args.use_dist_latent:
+            latent_logvar = self.fc_logvar(h)
+            if sample:
+                latent_sample = self.reparameterise(latent_mean, latent_logvar)
+            else:
+                latent_sample = latent_mean
         else:
             latent_sample = latent_mean
+            latent_logvar = torch.zeros_like(latent_mean)
 
         return latent_sample, latent_mean, latent_logvar, hidden_state
 
@@ -170,11 +174,16 @@ class RNNEncoder(nn.Module):
 
         # outputs
         latent_mean = self.fc_mu(gru_h)
-        latent_logvar = self.fc_logvar(gru_h)
-        if sample:
-            latent_sample = self.reparameterise(latent_mean, latent_logvar)
+        if self.args.use_dist_latent:
+            latent_logvar = self.fc_logvar(gru_h)
+            if sample:
+                latent_sample = self.reparameterise(latent_mean, latent_logvar)
+            else:
+                latent_sample = latent_mean
         else:
             latent_sample = latent_mean
+            latent_logvar = torch.zeros_like(latent_mean)
+
 
         if return_prior:
             latent_sample = torch.cat((prior_sample, latent_sample))

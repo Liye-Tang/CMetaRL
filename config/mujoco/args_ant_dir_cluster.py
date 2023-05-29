@@ -10,7 +10,7 @@ def get_args(rest_args):
     parser.add_argument('--num_frames', type=int, default=1e8, help='number of frames to train')
     parser.add_argument('--max_rollouts_per_task', type=int, default=2, help='number of MDP episodes for adaptation')
     parser.add_argument('--exp_label', default='varibad', help='label (typically name of method)')
-    parser.add_argument('--env_name', default='AntDir-v0', help='environment to train on')
+    parser.add_argument('--env_name', default='AntDirCluster-v0', help='environment to train on')
 
     # --- POLICY ---
 
@@ -140,14 +140,13 @@ def get_args(rest_args):
     parser.add_argument('--task_pred_type', type=str, default='task_id', help='choose: task_id, task_description')
     
     # --- CLUSTER TRAINING ---
-    parser.add_argument('--num_prototypes', type=int, default=10, help='the num of the classes: K')
+    parser.add_argument('--num_prototypes', type=int, default=4, help='the num of the classes: K')
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
-    parser.add_argument('--lr_cluster', type=float, default=0.00002, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
-    parser.add_argument('--num_cluster_updates', type=int, default=3, help='')
+    parser.add_argument('--cluster_loss_coeff', type=float, default=100, help='cluster loss')
 
     # --- ABLATIONS ---
 
@@ -156,7 +155,7 @@ def get_args(rest_args):
                         help='train without decoder')
     parser.add_argument('--disable_stochasticity_in_latent', type=boolean_argument, default=False,
                         help='use auto-encoder (non-variational)')
-    parser.add_argument('--disable_kl_term', type=boolean_argument, default=True,
+    parser.add_argument('--disable_kl_term', type=boolean_argument, default=False,
                         help='dont use the KL regularising loss term')
     parser.add_argument('--decode_only_past', type=boolean_argument, default=False,
                         help='only decoder past observations, not the future')
@@ -164,7 +163,8 @@ def get_args(rest_args):
                         help='KL term in ELBO to fixed Gaussian prior (instead of prev approx posterior)')
         
     # for the cluster loss   
-    parser.add_argument('--disable_cluster', type=boolean_argument, default=False, help='dont use the cluster loss')
+    parser.add_argument('--disable_cluster', type=boolean_argument, default=True, help='dont use the cluster loss')
+    parser.add_argument('--use_dist_latent', type=boolean_argument, default=True, help='dont use the cluster loss')
 
     # combining vae and RL loss
     parser.add_argument('--rlloss_through_encoder', type=boolean_argument, default=False,
@@ -189,13 +189,13 @@ def get_args(rest_args):
     # logging, saving, evaluation
     parser.add_argument('--log_interval', type=int, default=25, help='log interval, one log per n updates')
     parser.add_argument('--save_interval', type=int, default=500, help='save interval, one save per n updates')
-    parser.add_argument('--save_intermediate_models', type=boolean_argument, default=False, help='save all models')
+    parser.add_argument('--save_intermediate_models', type=boolean_argument, default=True, help='save all models')
     parser.add_argument('--eval_interval', type=int, default=25, help='eval interval, one eval per n updates')
     parser.add_argument('--vis_interval', type=int, default=500, help='visualisation interval, one eval per n updates')
     parser.add_argument('--results_log_dir', default=None, help='directory to save results (None uses ./logs)')
 
     # general settings
-    parser.add_argument('--seed',  nargs='+', type=int, default=[73])
+    parser.add_argument('--seed',  nargs='+', type=int, default=[75])
     parser.add_argument('--deterministic_execution', type=boolean_argument, default=False,
                         help='Make code fully deterministic. Expects 1 process and uses deterministic CUDNN')
 

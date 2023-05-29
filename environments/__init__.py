@@ -14,6 +14,14 @@ register(
 )
 
 register(
+    'AntDirCluster-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.ant_dir_cluster:AntDirClusterEnv',
+            'max_episode_steps': 200},
+    max_episode_steps=200
+)
+
+register(
     'AntDir2D-v0',
     entry_point='environments.wrappers:mujoco_wrapper',
     kwargs={'entry_point': 'environments.mujoco.ant_dir:AntDir2DEnv',

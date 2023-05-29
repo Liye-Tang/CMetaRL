@@ -14,7 +14,6 @@ from utils import evaluation as utl_eval
 from utils import helpers as utl
 from utils.tb_logger import TBLogger
 from vae import VaribadVAE
-from cluster import Cluster
 
 import utils.gol as gol
 
@@ -85,10 +84,6 @@ class MetaLearner:
 
         # initialise VAE and policy
         self.vae = VaribadVAE(self.args, self.logger, lambda: self.iter_idx)
-        if not self.args.disable_cluster:
-            self.cluster = Cluster(self.args, self.vae.encoder, self.vae.rollout_storage, self.logger, lambda: self.iter_idx)
-        else:
-            self.cluster = None
         self.policy_storage = self.initialise_policy_storage()
         self.policy = self.initialise_policy()
 
@@ -108,46 +103,27 @@ class MetaLearner:
     def initialise_policy(self):
 
         # initialise policy network
-        if self.args.disable_cluster:
-            policy_net = Policy(
-                args=self.args,
-                #
-                pass_state_to_policy=self.args.pass_state_to_policy,
-                pass_latent_to_policy=self.args.pass_latent_to_policy,
-                pass_belief_to_policy=self.args.pass_belief_to_policy,
-                pass_task_to_policy=self.args.pass_task_to_policy,
-                dim_state=self.args.state_dim,
-                dim_latent=self.args.latent_dim * 2,
-                dim_belief=self.args.belief_dim,
-                dim_task=self.args.task_dim,
-                #
-                hidden_layers=self.args.policy_layers,
-                activation_function=self.args.policy_activation_function,
-                policy_initialisation=self.args.policy_initialisation,
-                #
-                action_space=self.envs.action_space,
-                init_std=self.args.policy_init_std,
-            ).to(device)
-        else:
-            policy_net = Policy(
-                args=self.args,
-                #
-                pass_state_to_policy=self.args.pass_state_to_policy,
-                pass_latent_to_policy=self.args.pass_latent_to_policy,
-                pass_belief_to_policy=self.args.pass_belief_to_policy,
-                pass_task_to_policy=self.args.pass_task_to_policy,
-                dim_state=self.args.state_dim,
-                dim_latent=self.args.latent_dim,
-                dim_belief=self.args.belief_dim,
-                dim_task=self.args.task_dim,
-                #
-                hidden_layers=self.args.policy_layers,
-                activation_function=self.args.policy_activation_function,
-                policy_initialisation=self.args.policy_initialisation,
-                #
-                action_space=self.envs.action_space,
-                init_std=self.args.policy_init_std,
-            ).to(device)
+        
+        policy_net = Policy(
+            args=self.args,
+            #
+            pass_state_to_policy=self.args.pass_state_to_policy,
+            pass_latent_to_policy=self.args.pass_latent_to_policy,
+            pass_belief_to_policy=self.args.pass_belief_to_policy,
+            pass_task_to_policy=self.args.pass_task_to_policy,
+            dim_state=self.args.state_dim,
+            dim_latent=self.args.latent_dim * 2 if self.args.use_dist_latent else self.args.latent_dim,
+            dim_belief=self.args.belief_dim,
+            dim_task=self.args.task_dim,
+            #
+            hidden_layers=self.args.policy_layers,
+            activation_function=self.args.policy_activation_function,
+            policy_initialisation=self.args.policy_initialisation,
+            #
+            action_space=self.envs.action_space,
+            init_std=self.args.policy_init_std,
+        ).to(device)
+        
 
         # initialise policy trainer
         if self.args.policy == 'a2c':
@@ -179,8 +155,7 @@ class MetaLearner:
                 use_huber_loss=self.args.ppo_use_huberloss,
                 use_clipped_value_loss=self.args.ppo_use_clipped_value_loss,
                 clip_param=self.args.ppo_clip_param,
-                optimiser_vae=self.vae.optimiser_vae,
-                optimiser_cluster=self.cluster.optimiser_cluster if not self.args.disable_cluster else None,
+                optimiser_vae=self.vae.optimiser_vae
             )
         else:
             raise NotImplementedError
@@ -382,8 +357,7 @@ class MetaLearner:
                 policy_storage=self.policy_storage,
                 encoder=self.vae.encoder,
                 rlloss_through_encoder=self.args.rlloss_through_encoder,
-                compute_vae_loss=self.vae.compute_vae_loss,
-                compute_cluster_loss=None if self.args.disable_cluster else self.cluster.compute_cluster_loss)
+                compute_vae_loss=self.vae.compute_vae_loss)
         else:
             policy_train_stats = 0, 0, 0, 0
 
@@ -458,14 +432,14 @@ class MetaLearner:
 
                 torch.save(self.policy.actor_critic, os.path.join(save_path, f"policy{idx_label}.pt"))
                 torch.save(self.vae.encoder, os.path.join(save_path, f"encoder{idx_label}.pt"))
-                if self.cluster is not None:
-                    torch.save(self.cluster.proto_proj, os.path.join(save_path, f"proto_proj{idx_label}.pt"))
                 if self.vae.state_decoder is not None:
                     torch.save(self.vae.state_decoder, os.path.join(save_path, f"state_decoder{idx_label}.pt"))
                 if self.vae.reward_decoder is not None:
                     torch.save(self.vae.reward_decoder, os.path.join(save_path, f"reward_decoder{idx_label}.pt"))
                 if self.vae.task_decoder is not None:
                     torch.save(self.vae.task_decoder, os.path.join(save_path, f"task_decoder{idx_label}.pt"))
+                if self.vae.proto_proj is not None:
+                    torch.save(self.vae.proto_proj, os.path.join(save_path, f"proto_proj{idx_label}.pt"))
 
                 # save normalisation params of envs
                 if self.args.norm_rew_for_policy:
@@ -500,20 +474,21 @@ class MetaLearner:
             self.logger.add('encoder/latent_mean', torch.cat(self.policy_storage.latent_mean).mean(), self.iter_idx)
             self.logger.add('encoder/latent_logvar', torch.cat(self.policy_storage.latent_logvar).mean(), self.iter_idx)
 
-            # log the average weights and gradients of all models (where applicable)
-            for [model, name] in [
-                [self.policy.actor_critic, 'policy'],
-                [self.vae.encoder, 'encoder'],
-                [self.vae.reward_decoder, 'reward_decoder'],
-                [self.vae.state_decoder, 'state_transition_decoder'],
-                [self.vae.task_decoder, 'task_decoder']
-            ]:
-                if model is not None:
-                    param_list = list(model.parameters())
-                    param_mean = np.mean([param_list[i].data.cpu().numpy().mean() for i in range(len(param_list))])
-                    self.logger.add('weights/{}'.format(name), param_mean, self.iter_idx)
-                    if name == 'policy':
-                        self.logger.add('weights/policy_std', param_list[0].data.mean(), self.iter_idx)
-                    if param_list[0].grad is not None:
-                        param_grad_mean = np.mean([param_list[i].grad.cpu().numpy().mean() for i in range(len(param_list))])
-                        self.logger.add('gradients/{}'.format(name), param_grad_mean, self.iter_idx)
+            # # log the average weights and gradients of all models (where applicable) # TODO
+            # for [model, name] in [
+            #     [self.policy.actor_critic, 'policy'],
+            #     [self.vae.encoder, 'encoder'],
+            #     [self.vae.reward_decoder, 'reward_decoder'],
+            #     [self.vae.state_decoder, 'state_transition_decoder'],
+            #     [self.vae.task_decoder, 'task_decoder'],
+            #     [self.vae.proto_proj, 'proto_proj']
+            # ]:
+            #     if model is not None:
+            #         param_list = list(model.parameters())
+            #         param_mean = np.mean([param_list[i].data.cpu().numpy().mean() for i in range(len(param_list))])
+            #         self.logger.add('weights/{}'.format(name), param_mean, self.iter_idx)
+            #         if name == 'policy':
+            #             self.logger.add('weights/policy_std', param_list[0].data.mean(), self.iter_idx)
+            #         if param_list[0].grad is not None:
+            #             param_grad_mean = np.mean([param_list[i].grad.cpu().numpy().mean() for i in range(len(param_list))])
+            #             self.logger.add('gradients/{}'.format(name), param_grad_mean, self.iter_idx)
