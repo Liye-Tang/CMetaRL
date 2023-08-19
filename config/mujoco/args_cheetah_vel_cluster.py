@@ -115,7 +115,7 @@ def get_args(rest_args):
 
     # - decoder: rewards
     parser.add_argument('--decode_reward', type=boolean_argument, default=True, help='use reward decoder')
-    parser.add_argument('--rew_loss_coeff', type=float, default=0.0, help='weight for state loss (vs reward loss)')
+    parser.add_argument('--rew_loss_coeff', type=float, default=1.0, help='weight for state loss (vs reward loss)')
     parser.add_argument('--input_prev_state', type=boolean_argument, default=True, help='use prev state for rew pred')
     parser.add_argument('--input_action', type=boolean_argument, default=True, help='use prev action for rew pred')
     parser.add_argument('--reward_decoder_layers', nargs='+', type=int, default=[64, 32])
@@ -145,7 +145,7 @@ def get_args(rest_args):
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
-    parser.add_argument('--sinkhorn_iterations', type=int, default=3, help='')
+    parser.add_argument('--sinkhorn_iterations', type=int, default=50, help='')
     parser.add_argument('--cluster_loss_coeff', type=float, default=1000, help='cluster loss')
 
     # --- ABLATIONS ---

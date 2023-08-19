@@ -11,6 +11,7 @@ class AntDirClusterEnv(AntEnv):
     """
 
     def __init__(self, max_episode_steps=200):
+        self.num_cls = 4
         self.set_task(self.sample_tasks(1)[0])
         self._max_episode_steps = max_episode_steps
         self.task_dim = 1
@@ -44,21 +45,42 @@ class AntDirClusterEnv(AntEnv):
             task=self.get_task()
         )
 
-    def sample_tasks(self, n_tasks):
+    def sample_tasks(self, num_tasks):
+        task_clses = [random.randint(0, self.num_cls - 1) for _ in range(num_tasks)]
+        self.task_cls = task_clses[0]
         # for fwd/bwd env, goal direc is backwards if - 1.0, forwards if + 1.0
-        group1  = np.array([random.uniform(1/16, 3/16) for _ in range(n_tasks)]) * 2 * np.pi
-        
-        group2 = np.array([random.uniform(5/16, 7/16) for _ in range(n_tasks)]) * 2 * np.pi
-        
-        group3 = np.array([random.uniform(9/16, 11/16) for _ in range(n_tasks)]) * 2 * np.pi
-        
-        group4 = np.array([random.uniform(13/16, 15/16) for _ in range(n_tasks)]) * 2 * np.pi
-        return random.choice([group1, group2, group3, group4])
+        a = np.array([self.sample_task_per_cls(task_cls) for task_cls in task_clses])
+        return a
+    
+    def sample_task_per_cls(self, task_cls):
+        if task_cls == 0:
+            a = random.uniform(1/16, 3/16) * 2 * np.pi
+        elif task_cls == 1:
+            a = random.uniform(5/16, 7/16) * 2 * np.pi
+        elif task_cls == 2:
+            a = random.uniform(9/16, 11/16) * 2 * np.pi
+        else:
+            a = random.uniform(13/16, 15/16) * 2 * np.pi 
+        return a
+    
+    def get_task_cls(self):
+        return self.task_cls
 
     def set_task(self, task):
+        self.get_task_cls(task)
         if isinstance(task, np.ndarray):
             task = task[0]
         self.goal_direction = task
+        
+    def get_task_cls(self, task):
+        if task > 1/16 * 2 * np.pi and task < 3/16 * 2 * np.pi:
+            self.task_cls = 0
+        elif task > 5/16 * 2 * np.pi and task < 7/16 * 2 * np.pi:
+            self.task_cls = 1
+        elif task > 9/16 * 2 * np.pi and task < 11/16 * 2 * np.pi:
+            self.task_cls = 2
+        else:
+            self.task_cls = 3
 
     def get_task(self):
         return np.array([self.goal_direction])

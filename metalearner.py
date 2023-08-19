@@ -228,17 +228,20 @@ class MetaLearner:
                 # before resetting, update the embedding and add to vae buffer
                 # (last state might include useful task info)
                 if not (self.args.disable_decoder and self.args.disable_kl_term):
-                    self.vae.rollout_storage.insert(prev_state.clone(),
-                                                    action.detach().clone(),
-                                                    next_state.clone(),
-                                                    rew_raw.clone(),
-                                                    done.clone(),
-                                                    task.clone() if task is not None else None)
+                    try:
+                        self.vae.rollout_storage.insert(prev_state.clone(),
+                                                        action.detach().clone(),
+                                                        next_state.clone(),
+                                                        rew_raw.clone(),
+                                                        done.clone(),
+                                                        task.clone() if task is not None else None)
+                    except IndexError:
+                        print('why')
 
                 # add the obs before reset to the policy storage  TODO: the difference between polcy storage and policy buffer
                 self.policy_storage.next_state[step] = next_state.clone()
 
-                # reset environments that are done (this reset will not reset the task and only reset the state)
+                # reset the BAMDP reset the task
                 done_indices = np.argwhere(done.cpu().flatten()).flatten()
                 # part of the next states are reset and some are not
                 if len(done_indices) > 0:
@@ -430,7 +433,7 @@ class MetaLearner:
 
             for idx_label in idx_labels:
 
-                torch.save(self.policy.actor_critic, os.path.join(save_path, f"policy{idx_label}.pt"))
+                torch.save(self.policy.actor_critic, os.path.join(save_path, f"policy{idx_label}.pt"), _use_new_zipfile_serialization=False)
                 torch.save(self.vae.encoder, os.path.join(save_path, f"encoder{idx_label}.pt"))
                 if self.vae.state_decoder is not None:
                     torch.save(self.vae.state_decoder, os.path.join(save_path, f"state_decoder{idx_label}.pt"))

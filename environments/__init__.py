@@ -157,3 +157,24 @@ register(
     kwargs={},
     max_episode_steps=500
 )
+
+register(
+    'ML10-v0',
+    entry_point='environments.meta_world.ml10:ML10',
+    kwargs={},
+    max_episode_steps=500
+)
+
+register(
+    'ML1-v0',
+    entry_point='environments.meta_world.ml1:ML1',
+    kwargs={},
+    max_episode_steps=500
+)
+
+register(
+    'MobileDirClusterEnv-v0',
+    entry_point='environments.mujoco.mobile_robot_dir_cluster:MobileRobotDir',
+    kwargs={},
+    max_episode_steps=200
+)

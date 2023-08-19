@@ -7,6 +7,7 @@ from environments.mujoco.ant import AntEnv
 
 class AntGoalClusterEnv(AntEnv):
     def __init__(self, max_episode_steps=200):
+        self.num_cls = 4
         self.set_task(self.sample_tasks(1)[0])
         self._max_episode_steps = max_episode_steps
         self.task_dim = 2
@@ -16,7 +17,8 @@ class AntGoalClusterEnv(AntEnv):
         self.do_simulation(action, self.frame_skip)
         xposafter = np.array(self.get_body_com("torso"))
 
-        goal_reward = -np.sum(np.abs(xposafter[:2] - self.goal_pos))  # make it happy, not suicidal
+        # goal_reward = -np.sum(np.abs(xposafter[:2] - self.goal_pos))  # make it happy, not suicidal
+        goal_reward = -np.sum(np.square(xposafter[:2] - self.goal_pos))  # test the square reward
 
         ctrl_cost = .1 * np.square(action).sum()
         contact_cost = 0.5 * 1e-3 * np.sum(
@@ -35,35 +37,28 @@ class AntGoalClusterEnv(AntEnv):
         )
 
     def sample_tasks(self, num_tasks):
-        a = np.array([random.uniform(1/16, 3/16) for _ in range(num_tasks)]) * 2 * np.pi
+        task_clses = [random.randint(0, self.num_cls - 1) for _ in range(num_tasks)]
+        self.task_cls = task_clses[0]
+        a = np.array([self.sample_task_per_cls(task_cls) for task_cls in task_clses])
+        
         r = 3
-        group1 = np.stack((r * np.cos(a), r * np.sin(a)), axis=-1)
+        tasks = np.stack((r * np.cos(a), r * np.sin(a)), axis=-1)
+
+        return tasks
+    
+    def sample_task_per_cls(self, task_cls):
+        if task_cls == 0:
+            a = random.uniform(1/16, 3/16) * 2 * np.pi
+        elif task_cls == 1:
+            a = random.uniform(5/16, 7/16) * 2 * np.pi
+        elif task_cls == 2:
+            a = random.uniform(9/16, 11/16) * 2 * np.pi
+        else:
+            a = random.uniform(13/16, 15/16) * 2 * np.pi 
+        return a
         
-        a = np.array([random.uniform(5/16, 7/16) for _ in range(num_tasks)]) * 2 * np.pi
-        r = 3
-        group2 = np.stack((r * np.cos(a), r * np.sin(a)), axis=-1)
-        
-        a = np.array([random.uniform(9/16, 11/16) for _ in range(num_tasks)]) * 2 * np.pi
-        r = 3
-        group3 = np.stack((r * np.cos(a), r * np.sin(a)), axis=-1)
-        
-        a = np.array([random.uniform(13/16, 15/16) for _ in range(num_tasks)]) * 2 * np.pi
-        r = 3
-        group4 = np.stack((r * np.cos(a), r * np.sin(a)), axis=-1)
-        
-        task = random.choice([group1, group2, group3, group4])
-        # x_offset = random.random() - 0.5
-        # y_offset = random.random() - 0.5
-        # offset = np.array([x_offset, y_offset])
-        
-        # goal1 = np.array([3, 0])
-        # goal2 = np.array([0, 3])
-        # goal3 = np.array([-3, 0])
-        # goal4 = np.array([0, -3])
-        
-        # task = random.choice([goal1, goal2, goal3, goal4]) + offset
-        # task = np.expand_dims(task, axis=0)
-        return task
+    def get_task_cls(self):
+        return self.task_cls
     
     def set_task(self, task):
         self.goal_pos = task

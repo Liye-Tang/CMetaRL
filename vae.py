@@ -713,3 +713,11 @@ class VaribadVAE:
                     print('wrong')
                 self.logger.add('vae_losses/cluster', cluster_loss.mean(), curr_iter_idx)
             self.logger.add('vae_losses/sum', elbo_loss, curr_iter_idx)
+    
+    def cal_policy_num(self, latent):
+        # latent = latent.reshape(-1, self.latent_dim)
+        embedding = F.normalize(latent, dim=-1, p=2)
+        scores = self.proto_proj(embedding)
+        log_prob = F.log_softmax(scores / self.args.temperature, dim=-1)
+        policy_nums = torch.max(log_prob, dim=-1)[1].unsqueeze(-1)
+        return policy_nums

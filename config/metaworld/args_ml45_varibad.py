@@ -165,6 +165,7 @@ def get_args(rest_args):
         
     # for the cluster loss   
     parser.add_argument('--disable_cluster', type=boolean_argument, default=True, help='dont use the cluster loss')
+    parser.add_argument('--use_dist_latent', type=boolean_argument, default=True, help='use the dist latent')
 
     # combining vae and RL loss
     parser.add_argument('--rlloss_through_encoder', type=boolean_argument, default=False,
