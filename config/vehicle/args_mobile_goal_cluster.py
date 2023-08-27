@@ -10,7 +10,7 @@ def get_args(rest_args):
     parser.add_argument('--num_frames', type=int, default=1e8, help='number of frames to train')
     parser.add_argument('--max_rollouts_per_task', type=int, default=2, help='number of MDP episodes for adaptation')
     parser.add_argument('--exp_label', default='cluster', help='label (typically name of method)')
-    parser.add_argument('--env_name', default='MobileDirClusterEnv-v0', help='environment to train on')
+    parser.add_argument('--env_name', default='MobileGoalClusterEnv-v0', help='environment to train on')
 
     # --- POLICY ---
 
@@ -189,8 +189,8 @@ def get_args(rest_args):
 
     # logging, saving, evaluation
     parser.add_argument('--log_interval', type=int, default=25, help='log interval, one log per n updates')
-    parser.add_argument('--save_interval', type=int, default=500, help='save interval, one save per n updates')
-    parser.add_argument('--save_intermediate_models', type=boolean_argument, default=False, help='save all models')
+    parser.add_argument('--save_interval', type=int, default=2000, help='save interval, one save per n updates')
+    parser.add_argument('--save_intermediate_models', type=boolean_argument, default=True, help='save all models')
     parser.add_argument('--eval_interval', type=int, default=25, help='eval interval, one eval per n updates')
     parser.add_argument('--vis_interval', type=int, default=500, help='visualisation interval, one eval per n updates')
     parser.add_argument('--results_log_dir', default=None, help='directory to save results (None uses ./logs)')

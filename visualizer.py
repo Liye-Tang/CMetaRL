@@ -69,13 +69,13 @@ class TestPolicy():
             else:
                 self.encoder = torch.load(os.path.join(self.load_path, 'models/encoder{}.pt'.format(self.iter)), map_location=torch.device('cpu'))
         
-        # if args.disable_cluster:
-        #     self.proto_proj = None
-        # else:
-        if device == "cpu":
-            self.proto_proj = torch.load(os.path.join(self.load_path, 'models/proto_proj{}.pt'.format(self.iter)))
+        if args.disable_cluster:
+            self.proto_proj = None
         else:
-            self.proto_proj = torch.load(os.path.join(self.load_path, 'models/proto_proj{}.pt'.format(self.iter)), map_location=torch.device('cpu'))
+            if device == "cpu":
+                self.proto_proj = torch.load(os.path.join(self.load_path, 'models/proto_proj{}.pt'.format(self.iter)))
+            else:
+                self.proto_proj = torch.load(os.path.join(self.load_path, 'models/proto_proj{}.pt'.format(self.iter)), map_location=torch.device('cpu'))
   
     def cal_context_cls(self, context):
         latent = torch.from_numpy(context)
@@ -86,30 +86,13 @@ class TestPolicy():
         context_cls = torch.max(log_prob, dim=-1)[1].unsqueeze(-1)
         return context_cls.numpy()[0]
     
-    # def get_task_context_dict(self, task_num, task_list=None):
-    #     task_context_dict = dict()
-    #     if task_list is None:
-    #         for i in range(task_num):
-    #             context_list= self.get_context_list_for_task()
-    #             task = self.env.get_task()
-    #             task_context_dict[task] = context_list
-    #     else:
-    #         for task in task_list:
-    #             context_listt_list = self.get_context_list_for_task(task=task)
-    #             task_context_dict[task] = context_list
-    #     return task_context_dict
-    
     def get_context_cls_list(self, context_list):
         context_cls_list = [self.cal_context_cls(context) for context in context_list]
         return context_cls_list
-            
     
-    def get_context_and_cls_for_task(self, num_steps=200, start_step_idx=100, task=None):
-        # self.env.reset_task(task)
+    def run_an_episode(self, num_steps, render=False, task=None):
         context_list = []
-        # reset environment
         state = self.env.reset(task=task)
-        
         state = torch.from_numpy(state).float().to(device).unsqueeze(0)
 
         if self.encoder is not None:
@@ -129,10 +112,9 @@ class TestPolicy():
                                               latent_logvar=latent_logvar,
                                               deterministic=True)
 
-            # observe reward and next obs
             state, rew_raw, done, info = self.env.step(action.cpu().numpy()[0])
-            # self.env.render()
-            # print(action.cpu().numpy()[0][0])
+            if render:
+                self.env.render()
             
             state = torch.from_numpy(state).float().to(device).unsqueeze(0)
             rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device).unsqueeze(0)
@@ -145,17 +127,19 @@ class TestPolicy():
                                                                                                 done=None,
                                                                                                 hidden_state=hidden_state)
                 latent_sample, latent_mean, latent_logvar, hidden_state = latent_sample.unsqueeze(0), latent_mean.unsqueeze(0), latent_logvar.unsqueeze(0), hidden_state.unsqueeze(0)
-
-            if step_idx > start_step_idx:
-                # latent_mean = torch.nn.functional.normalize(latent_mean, dim=-1, p=2)
-                context_list.append(latent_mean[0, 0].numpy())
-                # print(self.cal_context_cls(latent_mean[0, 0].numpy()))
-                # print(task, self.env.get_task(), self.env.get_task_cls())
             
+            context_list.append(latent_mean[0, 0].numpy())
             if done:
                 break
-        # print('-' * 100)
-        context_cls_list = self.get_context_cls_list(context_list)
+        return context_list
+
+    def run_n_episode(self, n):
+        for i in range(n):
+            self.run_an_episode()
+
+    def get_context_and_cls_for_task(self, num_steps=200, start_step_idx=100, task=None):
+        context_list = self.run_an_episode(num_steps=num_steps)
+        context_cls_list = self.get_context_cls_list(context_list) if not self.args.disable_cluster else None
         return context_list, context_cls_list
     
     def get_task_cls_and_context_cls(self, num_tasks=100):
@@ -175,7 +159,7 @@ class TestPolicy():
             task_context_list.append(context_list)
             task_context_cls_list.append(context_cls_list)
         return task_list, task_cls_list, task_context_list, task_context_cls_list
-    
+
     def visualize_context(self, num_tasks):
         task_list, task_cls_list, task_context_list, task_context_cls_list = self.get_task_cls_and_context_cls(num_tasks=num_tasks)
         total_context_list = []
@@ -200,11 +184,12 @@ class TestPolicy():
         
 def main():
     # the policy and configuration path
-    load_path = 'logs/logs_AntGoalCluster-v0/varibad_73__02:07_23:04:06'
+    load_path = 'logs/logs_MobileGoalClusterEnv-v0/cluster_73__24:08_16:21:38'
     iter = 29999
     
     test = TestPolicy(load_path, iter)
-    test.visualize_context(num_tasks=100)
+    test.run_an_episode(num_steps=200)
+    # test.visualize_context(num_tasks=100)
     print('ooh')
 
 if __name__ == "__main__":

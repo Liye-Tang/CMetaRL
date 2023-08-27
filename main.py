@@ -22,10 +22,10 @@ from config.mujoco import \
     args_cheetah_vel_avg, args_cheetah_vel_cluster, \
     args_ant_dir_multitask, args_ant_dir_expert, args_ant_dir_rl2, args_ant_dir_varibad, args_ant_dir_cluster, \
     args_ant_goal_multitask, args_ant_goal_expert, args_ant_goal_rl2, args_ant_goal_varibad, \
-    args_ant_goal_humplik, args_ant_goal_cluster,\
+    args_ant_goal_humplik, args_ant_goal_cluster, args_walker_cluster, \
     args_walker_multitask, args_walker_expert, args_walker_avg, args_walker_rl2, args_walker_varibad, \
     args_humanoid_dir_varibad, args_humanoid_dir_rl2, args_humanoid_dir_multitask, args_humanoid_dir_expert
-from config.vehicle import args_veh_varibad, args_param_varibad, args_mobile_cluster
+from config.vehicle import args_veh_varibad, args_param_varibad, args_mobile_cluster, args_mobile_goal_cluster
 from config.metaworld import args_ml45_varibad, args_ml45_cluster, args_ml10_varibad, args_ml10_cluster, args_ml1_varibad, args_ml1_cluster
 from environments.parallel_envs import make_vec_envs
 from learner import Learner
@@ -34,7 +34,7 @@ from metalearner import MetaLearner
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env-type', default='mobile_cluster')
+    parser.add_argument('--env-type', default='mobile_goal_cluster')
     # parser.add_argument('--env-type', default='pointrobot_varibad')
     args, rest_args = parser.parse_known_args()
     env = args.env_type
@@ -122,6 +122,8 @@ def main():
         args = args_walker_varibad.get_args(rest_args)
     elif env == 'walker_rl2':
         args = args_walker_rl2.get_args(rest_args)
+    elif env == 'walker_cluster':
+        args = args_walker_cluster.get_args(rest_args)
     #
     # - HumanoidDir -
     elif env == 'humanoid_dir_multitask':
@@ -138,8 +140,10 @@ def main():
         args = args_veh_varibad.get_args(rest_args)
     elif env == 'param_varibad':
         args = args_param_varibad.get_args(rest_args)
-    elif env == 'mobile_cluster':
+    elif env == 'mobile_dir_cluster':
         args = args_mobile_cluster.get_args(rest_args)
+    elif env == 'mobile_goal_cluster':
+        args = args_mobile_goal_cluster.get_args(rest_args)
         
     # --- Metaworld ---
     elif env == 'ml1_varibad':

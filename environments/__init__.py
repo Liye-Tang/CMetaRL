@@ -91,6 +91,17 @@ register(
     max_episode_steps=200
 )
 
+register(
+    id='Walker2DClusterParams-v0',
+    entry_point='environments.mujoco.rand_param_envs.walker2d_cluster_params:Walker2DClusterParamsEnv',
+    max_episode_steps=200
+)
+
+register(
+    id='HopperClusterParams-v0',
+    entry_point='environments.mujoco.rand_param_envs.hopper_cluster_params:HopperClusterParamsEnv',
+    max_episode_steps=200
+)
 
 # # 2D Navigation
 # # ----------------------------------------
@@ -175,6 +186,13 @@ register(
 register(
     'MobileDirClusterEnv-v0',
     entry_point='environments.mujoco.mobile_robot_dir_cluster:MobileRobotDir',
+    kwargs={},
+    max_episode_steps=200
+)
+
+register(
+    'MobileGoalClusterEnv-v0',
+    entry_point='environments.mujoco.mobile_robot_goal_cluster:MobileRobotGoal',
     kwargs={},
     max_episode_steps=200
 )

@@ -191,8 +191,9 @@ class MetaLearner:
 
             # rollout policies for a few steps
             for step in range(self.args.policy_num_steps):
-
+                # print(self.envs.get_task())
                 # sample actions from policy
+                
                 with torch.no_grad():
                     value, action = utl.select_action(
                         args=self.args,

@@ -18,7 +18,7 @@ from gym import spaces
 
 # gym.logger.setLevel(gym.logger.ERROR)
 
-class MobileRobotDir(gym.Env):
+class MobileRobotGoal(gym.Env):
 
     def __init__(
             self, **kwargs: Any,
@@ -90,10 +90,8 @@ class MobileRobotDir(gym.Env):
             self._state[:, :5], action.reshape(1, -1), self.dt, "ego"
         )
         
-        goal_direction = (np.cos(self.goal_direction), np.sin(self.goal_direction))
-        robot_direction = (np.cos(self._state[:, 2]), np.sin(self._state[:, 2]))
-        direction_reward = np.dot(goal_direction, robot_direction)
-        velocity_error = self._state[:, 3] - self.exp_v
+        goal_reward = np.sum(np.square(robot_state[:, :2] - self.goal_pos))
+        velocity_error = robot_state[:, 3] - self.exp_v
 
         self._state = robot_state
 
@@ -101,7 +99,7 @@ class MobileRobotDir(gym.Env):
         observation = np.array(self._state.reshape(1,-1))
         # 定义奖励函数
         r_tracking = (5
-                      + 6.5 * np.square(direction_reward)    # 目标朝向角度误差
+                      - 0.05 * goal_reward    # 目标位置误差
                       - 7 * np.square(velocity_error)   # 期望速度误差
                       - 3 * np.square(self._state[:,4])     # 横摆惩罚
                       )
@@ -113,7 +111,7 @@ class MobileRobotDir(gym.Env):
         isdone = self.get_done()
         # if isdone:
         #     reward = -415
-        self.info = dict(r_tracking=direction_reward, r_action=r_action)
+        self.info = dict()
         self.steps += 1
         return np.array(observation.reshape(-1), dtype=np.float32), float(reward), isdone, {}
 
@@ -195,7 +193,10 @@ class MobileRobotDir(gym.Env):
             self.set_task(task)
         else:
             self.task_cls = random.randint(0, self.num_cls - 1)
-            self.goal_direction = self.sample_task_per_cls(self.task_cls)
+            a = self.sample_task_per_cls(self.task_cls)
+            r = 8
+            task = np.stack((r * np.cos(a), r * np.sin(a)), axis=-1)
+            self.goal_pos = task
     
     def sample_task_per_cls(self, task_cls):
         if task_cls == 0:
@@ -215,7 +216,7 @@ class MobileRobotDir(gym.Env):
         self.get_task_cls(task)
         if isinstance(task, np.ndarray):
             task = task[0]
-        self.goal_direction = task
+        self.goal_pos = task
         
     def get_task_cls(self, task):
         if task > 1/16 * 2 * np.pi and task < 3/16 * 2 * np.pi:
@@ -228,7 +229,7 @@ class MobileRobotDir(gym.Env):
             self.task_cls = 3
 
     def get_task(self):
-        return np.array([self.goal_direction])
+        return self.goal_pos
 
 
 class Robot:
@@ -296,7 +297,7 @@ class Robot:
 
 
 def main():
-    env = MobileRobotDir()
+    env = MobileRobotGoal()
     state = env.reset()
 
     for i in range(200):
