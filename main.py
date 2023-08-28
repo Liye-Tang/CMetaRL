@@ -4,7 +4,7 @@ Takes a flag --env-type (see below for choices) and loads the parameters from th
 """
 import utils.gol as gol
 gol._init()
-gol.set_value('device', 'cuda:1')
+gol.set_value('device', 'cuda:0')
 import argparse
 import warnings
 
@@ -19,7 +19,7 @@ from config.pointrobot import \
 from config.mujoco import \
     args_cheetah_dir_multitask, args_cheetah_dir_expert, args_cheetah_dir_rl2, args_cheetah_dir_varibad, \
     args_cheetah_vel_multitask, args_cheetah_vel_expert, args_cheetah_vel_rl2, args_cheetah_vel_varibad, \
-    args_cheetah_vel_avg, args_cheetah_vel_cluster, \
+    args_cheetah_vel_avg, args_cheetah_vel_cluster, args_cheetah_dir_cluster, \
     args_ant_dir_multitask, args_ant_dir_expert, args_ant_dir_rl2, args_ant_dir_varibad, args_ant_dir_cluster, \
     args_ant_goal_multitask, args_ant_goal_expert, args_ant_goal_rl2, args_ant_goal_varibad, \
     args_ant_goal_humplik, args_ant_goal_cluster, args_walker_cluster, \
@@ -34,7 +34,7 @@ from metalearner import MetaLearner
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env-type', default='mobile_goal_cluster')
+    parser.add_argument('--env-type', default='cheetah_dir_cluster')
     # parser.add_argument('--env-type', default='pointrobot_varibad')
     args, rest_args = parser.parse_known_args()
     env = args.env_type
@@ -70,6 +70,8 @@ def main():
         args = args_cheetah_dir_varibad.get_args(rest_args)
     elif env == 'cheetah_dir_rl2':
         args = args_cheetah_dir_rl2.get_args(rest_args)
+    elif env == 'cheetah_dir_cluster':
+        args = args_cheetah_dir_cluster.get_args(rest_args)
     #
     # - CheetahVel -
     elif env == 'cheetah_vel_multitask':

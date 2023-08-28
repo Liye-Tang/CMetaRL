@@ -54,6 +54,14 @@ register(
 )
 
 register(
+    'HalfCheetahDirCluster-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.half_cheetah_dir_cluster:HalfCheetahDirClusterEnv',
+            'max_episode_steps': 200},
+    max_episode_steps=200
+)
+
+register(
     'HalfCheetahVel-v0',
     entry_point='environments.wrappers:mujoco_wrapper',
     kwargs={'entry_point': 'environments.mujoco.half_cheetah_vel:HalfCheetahVelEnv',

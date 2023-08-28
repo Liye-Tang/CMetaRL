@@ -186,9 +186,10 @@ def main():
     # the policy and configuration path
     load_path = 'logs/logs_MobileGoalClusterEnv-v0/cluster_73__24:08_16:21:38'
     iter = 29999
+    torch.load('logs/logs_MobileGoalClusterEnv-v0/cluster_73__24:08_16:21:38/models/policy27999.pt')
     
-    test = TestPolicy(load_path, iter)
-    test.run_an_episode(num_steps=200)
+    # test = TestPolicy(load_path, iter)
+    # test.run_an_episode(num_steps=200)
     # test.visualize_context(num_tasks=100)
     print('ooh')
 

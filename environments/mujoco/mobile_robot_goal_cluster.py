@@ -98,12 +98,12 @@ class MobileRobotGoal(gym.Env):
         # the absolute obs x is not taken as the obs 
         observation = np.array(self._state.reshape(1,-1))
         # 定义奖励函数
+        # 对于goal env，不应该设置速度误差
         r_tracking = (5
                       - 0.05 * goal_reward    # 目标位置误差
-                      - 7 * np.square(velocity_error)   # 期望速度误差
                       - 3 * np.square(self._state[:,4])     # 横摆惩罚
                       )
-        # r_action = -0.5 * np.square(action[:, 0]) - 0.5 * np.square(action[:, 1])
+        
         r_action = -1 * np.square(action[:, 0]) - 1 * np.square(action[:, 1])
 
         reward = r_tracking + r_action
