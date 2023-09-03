@@ -97,15 +97,27 @@ class RandomClusterEnv(MetaEnv, MujocoEnv):
     def sample_task_per_cls(self, task_cls):
         new_params = {}
 
-        scale_upper_bound = 3.5
-        scale_lower_bound = 2.5
+        # scale_upper_bound = 3.5
+        # scale_lower_bound = 2.5
 
         # the log scale limit equals to 3
+        if task_cls == 0:
+            scale_upper_bound = 0.1
+            scale_lower_bound = 0.01
+        elif task_cls == 1:
+            scale_upper_bound = 0.9
+            scale_lower_bound = 1.1
+        elif task_cls == 2:
+            scale_upper_bound = 10
+            scale_lower_bound = 11
+        else:
+            scale_upper_bound = 100
+            scale_lower_bound = 110
 
         if 'body_mass' in self.rand_params:
-            rand_params = [0 for _ in
+            rand_params = [random.uniform(scale_lower_bound, scale_upper_bound) for _ in
                             range(np.prod(self.model.body_mass.shape))]
-            body_mass_multiplyers = np.array(1.5) ** np.array(rand_params).reshape(self.model.body_mass.shape)
+            body_mass_multiplyers = np.array(rand_params).reshape(self.model.body_mass.shape)
             new_params['body_mass'] = self.init_params['body_mass'] * body_mass_multiplyers
 
         # body_inertia
@@ -129,14 +141,14 @@ class RandomClusterEnv(MetaEnv, MujocoEnv):
             dof_damping_multipliers = np.array(1.5) ** np.array(rand_params).reshape(self.model.geom_friction.shape)
             new_params['geom_friction'] = np.multiply(self.init_params['geom_friction'], dof_damping_multipliers)
         
-        if task_cls == 0:
-            new_params['body_mass'] = new_params['body_mass'] * random.uniform(scale_upper_bound, scale_lower_bound)
-        elif task_cls == 1:
-            new_params['body_inertia'] = new_params['body_inertia'] * random.uniform(scale_upper_bound, scale_lower_bound)
-        elif task_cls == 2:
-            new_params['dof_damping'] = new_params['dof_damping'] * random.uniform(scale_upper_bound, scale_lower_bound)
-        else:
-            new_params['dof_damping'] = new_params['dof_damping'] * random.uniform(scale_upper_bound, scale_lower_bound)
+        # if task_cls == 0:
+        #     new_params['body_mass'] = new_params['body_mass'] * random.uniform(scale_upper_bound, scale_lower_bound)
+        # elif task_cls == 1:
+        #     new_params['body_inertia'] = new_params['body_inertia'] * random.uniform(scale_upper_bound, scale_lower_bound)
+        # elif task_cls == 2:
+        #     new_params['dof_damping'] = new_params['dof_damping'] * random.uniform(scale_upper_bound, scale_lower_bound)
+        # else:
+        #     new_params['dof_damping'] = new_params['dof_damping'] * random.uniform(scale_upper_bound, scale_lower_bound)
 
         return new_params
 
@@ -164,7 +176,7 @@ class RandomClusterEnv(MetaEnv, MujocoEnv):
             task = np.concatenate([task[k].reshape(-1) for k in task.keys()])
         else:
             task = np.zeros(self.rand_param_dim)
-        task = self.get_task_cls()
+        # task = self.get_task_cls()
         return task
 
     def save_parameters(self):

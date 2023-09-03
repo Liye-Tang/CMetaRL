@@ -58,12 +58,9 @@ class HalfCheetahDirClusterEnv(HalfCheetahEnv):
     def sample_tasks(self, num_tasks):
         task_clses = [random.randint(0, self.num_cls - 1) for _ in range(num_tasks)]
         self.task_cls = task_clses[0]
+        # for fwd/bwd env, goal direc is backwards if - 1.0, forwards if + 1.0
         a = np.array([self.sample_task_per_cls(task_cls) for task_cls in task_clses])
-        
-        r = 3
-        tasks = np.stack((r * np.cos(a), r * np.sin(a)), axis=-1)
-
-        return tasks
+        return a
     
     def sample_task_per_cls(self, task_cls):
         if task_cls == 0:

@@ -103,10 +103,10 @@ class MobileRobotGoal(gym.Env):
                       - 0.05 * goal_reward    # 目标位置误差
                       - 3 * np.square(self._state[:,4])     # 横摆惩罚
                       )
-        
-        r_action = -1 * np.square(action[:, 0]) - 1 * np.square(action[:, 1])
+        r_punish = -0.1 if self._state[:, 3] > 0.4 else 0
+        r_action = -0.1 * np.square(action[:, 0]) - 0.1 * np.square(action[:, 1])
 
-        reward = r_tracking + r_action
+        reward = r_tracking + r_action + r_punish
 
         isdone = self.get_done()
         # if isdone:
@@ -304,8 +304,6 @@ def main():
         action = env.action_space.sample()
         next_state, reward, done, info = env.step(action)
         env.render()
-
-    
     
 
 if __name__ == '__main__':

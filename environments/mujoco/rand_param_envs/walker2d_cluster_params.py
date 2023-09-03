@@ -18,6 +18,7 @@ class Walker2DClusterParamsEnv(RandomClusterEnv, utils.EzPickle):
         alive_bonus = 1.0
         reward = ((posafter - posbefore) / self.dt)
         reward += alive_bonus
+        reward += (height > .7 and height < 2)
         reward -= 1e-3 * np.square(a).sum()
         done = not (height > 0.8 and height < 2.0 and ang > -1.0 and ang < 1.0)
         ob = self._get_obs()

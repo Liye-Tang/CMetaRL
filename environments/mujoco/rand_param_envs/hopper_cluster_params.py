@@ -2,7 +2,7 @@ import numpy as np
 
 from environments.mujoco.rand_param_envs.base_cluster import RandomClusterEnv
 from environments.mujoco.rand_param_envs.gym import utils
-
+from utils import rewards
 
 class HopperClusterParamsEnv(RandomClusterEnv, utils.EzPickle):
     def __init__(self, log_scale_limit=3.0):
@@ -18,6 +18,7 @@ class HopperClusterParamsEnv(RandomClusterEnv, utils.EzPickle):
         alive_bonus = 1.0
         reward = (posafter - posbefore) / self.dt
         reward += alive_bonus
+        reward += height > .7 and height < 2
         reward -= 1e-3 * np.square(a).sum()
         s = self.state_vector()
         done = not (np.isfinite(s).all() and (np.abs(s[2:]) < 100).all() and
@@ -52,3 +53,24 @@ class HopperClusterParamsEnv(RandomClusterEnv, utils.EzPickle):
         ob = super()._reset()
         self._elapsed_steps = 0
         return ob
+    
+    def get_reward(self, physics):     
+        """Returns a reward applicable to the performed task."""     
+        standing = rewards.tolerance(physics.height(), (_STAND_HEIGHT, 2))     
+        if self._hopping:       
+            hopping = rewards.tolerance(physics.speed(),                                   
+                                        bounds=(_HOP_SPEED, float('inf')),                                   
+                                        margin=_HOP_SPEED/2,                                   
+                                        value_at_margin=0.5,                                   
+                                        sigmoid='linear')       
+            return standing * hopping     
+        else:       
+            small_control = rewards.tolerance(physics.control(),                                         
+                                                margin=1, value_at_margin=0,                                         
+                                                sigmoid='quadratic').mean()       
+            small_control = (small_control + 4) / 5       
+            return standing * small_control
+
+if __name__ == '__main__':
+    env = HopperClusterParamsEnv()
+    env.get_reward()

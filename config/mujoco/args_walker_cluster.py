@@ -140,7 +140,7 @@ def get_args(rest_args):
     parser.add_argument('--task_pred_type', type=str, default='task_id', help='choose: task_id, task_description')
 
     # cluster
-    parser.add_argument('--num_prototypes', type=int, default=3, help='the num of the classes: K')
+    parser.add_argument('--num_prototypes', type=int, default=4, help='the num of the classes: K')
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
@@ -155,7 +155,7 @@ def get_args(rest_args):
                         help='train without decoder')
     parser.add_argument('--disable_stochasticity_in_latent', type=boolean_argument, default=False,
                         help='use auto-encoder (non-variational)')
-    parser.add_argument('--disable_kl_term', type=boolean_argument, default=True,
+    parser.add_argument('--disable_kl_term', type=boolean_argument, default=False,
                         help='dont use the KL regularising loss term')
     parser.add_argument('--decode_only_past', type=boolean_argument, default=False,
                         help='only decoder past observations, not the future')
@@ -170,9 +170,9 @@ def get_args(rest_args):
     parser.add_argument('--vae_loss_coeff', type=float, default=1.0,
                         help='weight for VAE loss (vs RL loss)')
     
-    # for the cluster loss   
-    parser.add_argument('--disable_cluster', type=boolean_argument, default=False, help='dont use the cluster loss')
-    parser.add_argument('--use_dist_latent', type=boolean_argument, default=False, help='dont use the cluster loss')
+    # for the cluster loss
+    parser.add_argument('--disable_cluster', type=boolean_argument, default=True, help='dont use the cluster loss')
+    parser.add_argument('--use_dist_latent', type=boolean_argument, default=True, help='dont use the cluster loss')
 
     # for the policy training
     parser.add_argument('--sample_embeddings', type=boolean_argument, default=False,
