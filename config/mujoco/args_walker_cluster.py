@@ -155,7 +155,7 @@ def get_args(rest_args):
                         help='train without decoder')
     parser.add_argument('--disable_stochasticity_in_latent', type=boolean_argument, default=False,
                         help='use auto-encoder (non-variational)')
-    parser.add_argument('--disable_kl_term', type=boolean_argument, default=False,
+    parser.add_argument('--disable_kl_term', type=boolean_argument, default=True,
                         help='dont use the KL regularising loss term')
     parser.add_argument('--decode_only_past', type=boolean_argument, default=False,
                         help='only decoder past observations, not the future')
@@ -171,8 +171,8 @@ def get_args(rest_args):
                         help='weight for VAE loss (vs RL loss)')
     
     # for the cluster loss
-    parser.add_argument('--disable_cluster', type=boolean_argument, default=True, help='dont use the cluster loss')
-    parser.add_argument('--use_dist_latent', type=boolean_argument, default=True, help='dont use the cluster loss')
+    parser.add_argument('--disable_cluster', type=boolean_argument, default=False, help='dont use the cluster loss')
+    parser.add_argument('--use_dist_latent', type=boolean_argument, default=False, help='dont use the cluster loss')
 
     # for the policy training
     parser.add_argument('--sample_embeddings', type=boolean_argument, default=False,

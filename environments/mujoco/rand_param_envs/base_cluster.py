@@ -101,17 +101,29 @@ class RandomClusterEnv(MetaEnv, MujocoEnv):
         # scale_lower_bound = 2.5
 
         # the log scale limit equals to 3
-        if task_cls == 0:
-            scale_upper_bound = 0.1
-            scale_lower_bound = 0.01
-        elif task_cls == 1:
-            scale_upper_bound = 0.9
-            scale_lower_bound = 1.1
-        elif task_cls == 2:
-            scale_upper_bound = 10
-            scale_lower_bound = 11
-        else:
-            scale_upper_bound = 100
+        # if task_cls == 0:
+        #     scale_upper_bound = 0.1
+        #     scale_lower_bound = 0.01
+        # elif task_cls == 1:
+        #     scale_upper_bound = 0.9
+        #     scale_lower_bound = 1.1
+        # elif task_cls == 2:
+        #     scale_upper_bound = 10
+        #     scale_lower_bound = 11
+        # else:
+        #     scale_upper_bound = 100
+        #     scale_lower_bound = 110
+        if task_cls == 0:             
+            scale_upper_bound = 0.2             
+            scale_lower_bound = 0.01         
+        elif task_cls == 1:             
+            scale_upper_bound = 1             
+            scale_lower_bound = 2         
+        elif task_cls == 2:             
+            scale_upper_bound = 10             
+            scale_lower_bound = 15         
+        else:             
+            scale_upper_bound = 100             
             scale_lower_bound = 110
 
         if 'body_mass' in self.rand_params:
