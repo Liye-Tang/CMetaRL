@@ -99,8 +99,8 @@ class MobileRobotGoal(gym.Env):
         observation = np.array(self._state.reshape(1,-1))
         # 定义奖励函数
         # 对于goal env，不应该设置速度误差
-        r_tracking = (5
-                      - 0.5 * goal_reward    # 目标位置误差
+        r_tracking = (20
+                      - 0.2 * goal_reward    # 目标位置误差
                       - 3 * np.square(self._state[:,4])     # 横摆惩罚
                       )
         r_punish = -0.1 if self._state[:, 3] > 0.4 else 0

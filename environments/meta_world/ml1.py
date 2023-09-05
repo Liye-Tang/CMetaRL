@@ -56,7 +56,7 @@ class ML1(gym.Env):
         
 
 if __name__ == '__main__':
-    env = ML10()
+    env = ML1()
     for i in range(100):
         env.reset_task()
         epi_return = 0
