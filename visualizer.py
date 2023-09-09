@@ -184,14 +184,17 @@ class TestPolicy():
         
 def main():
     # the policy and configuration path
-    load_path = 'logs/logs_MobileGoalClusterEnv-v0/cluster_73__24:08_16:21:38'
-    iter = 29999
-    torch.load('logs/logs_MobileGoalClusterEnv-v0/cluster_73__24:08_16:21:38/models/policy27999.pt')
-    
-    # test = TestPolicy(load_path, iter)
+    load_path = 'logs/logs_MobileGoalClusterEnv-v0/cluster_73__06:09_20:50:57'
+    iter = 19999
+
+    test = TestPolicy(load_path, iter)
+    test.run_an_episode()
+    # print(latent_sample, latent_mean, latent_logvar, hidden_state)
+    # latent_sample, latent_mean, latent_logvar, hidden_state = test.encoder.prior(1)     
+    # print(latent_mean)
     # test.run_an_episode(num_steps=200)
     # test.visualize_context(num_tasks=100)
-    print('ooh')
+    # print(action)
 
 if __name__ == "__main__":
     main()

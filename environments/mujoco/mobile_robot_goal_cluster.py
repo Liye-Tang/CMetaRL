@@ -64,11 +64,13 @@ class MobileRobotGoal(gym.Env):
         state = np.zeros([n_agent, self.state_dim])
         
         #state[:, 0] = uniform(0.75, 1.25)  # x坐标
-        state[:, 0] = 1  # x坐标
+        state[:, 0] = 0  # x坐标
+        # state[:, 0] = random.uniform(-0.2, 0.2)
         #state[:, 1] = uniform(-0.7, -0.3)  # y坐标
-        state[:, 1] = -0.5  # y坐标
-        #state[:, 2] = uniform(-0.2, 0.2)  # 朝向
+        state[:, 1] = 0  # y坐标
+        state[:, 1] = random.uniform(-0.2, 0.2)
         state[:, 2] = 0  # 朝向
+        # state[:, 2] = random.uniform(-np.pi / 8, np.pi / 8)  # 朝向
         state[:, 3] = 0  # 速度
         #state[:, 4] = uniform(-np.pi/18,np.pi/18)  # 角速度
         state[:, 4] = 0  # 角速度
@@ -99,7 +101,7 @@ class MobileRobotGoal(gym.Env):
         observation = np.array(self._state.reshape(1,-1))
         # 定义奖励函数
         # 对于goal env，不应该设置速度误差
-        r_tracking = (20
+        r_tracking = (10
                       - 0.2 * goal_reward    # 目标位置误差
                       - 3 * np.square(self._state[:,4])     # 横摆惩罚
                       )

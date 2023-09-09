@@ -259,7 +259,7 @@ def sample_gaussian(mu, logvar, num=None):
 def save_obj(obj, folder, name):
     filename = os.path.join(folder, name + '.pkl')
     with open(filename, 'wb') as f:
-        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(obj, f, 2)
 
 
 def load_obj(folder, name):
