@@ -65,12 +65,12 @@ class MobileRobotGoal(gym.Env):
         
         #state[:, 0] = uniform(0.75, 1.25)  # x坐标
         state[:, 0] = 0  # x坐标
-        # state[:, 0] = random.uniform(-0.2, 0.2)
+        state[:, 0] = random.uniform(-0.2, 0.2)
         #state[:, 1] = uniform(-0.7, -0.3)  # y坐标
-        state[:, 1] = 0  # y坐标
+        # state[:, 1] = 0  # y坐标
         state[:, 1] = random.uniform(-0.2, 0.2)
-        state[:, 2] = 0  # 朝向
-        # state[:, 2] = random.uniform(-np.pi / 8, np.pi / 8)  # 朝向
+        # state[:, 2] = 0  # 朝向
+        state[:, 2] = random.uniform(-np.pi / 8, np.pi / 8)  # 朝向
         state[:, 3] = 0  # 速度
         #state[:, 4] = uniform(-np.pi/18,np.pi/18)  # 角速度
         state[:, 4] = 0  # 角速度
@@ -93,7 +93,7 @@ class MobileRobotGoal(gym.Env):
         )
         
         goal_reward = np.sum(np.square(robot_state[:, :2] - self.goal_pos))
-        velocity_error = robot_state[:, 3] - self.exp_v
+        # velocity_error = robot_state[:, 3] - self.exp_v
 
         self._state = robot_state
 
@@ -103,10 +103,10 @@ class MobileRobotGoal(gym.Env):
         # 对于goal env，不应该设置速度误差
         r_tracking = (10
                       - 0.2 * goal_reward    # 目标位置误差
-                      - 3 * np.square(self._state[:,4])     # 横摆惩罚
+                      - 10 * np.square(self._state[:,4])     # 横摆惩罚
                       )
-        r_punish = -0.1 if self._state[:, 3] > 0.4 else 0
-        r_action = -0.1 * np.square(action[:, 0]) - 0.1 * np.square(action[:, 1])
+        r_punish = -0.2 if self._state[:, 3] > 0.4 else 0
+        r_action = -0.5 * np.square(action[:, 0]) - 0.5 * np.square(action[:, 1])
 
         reward = r_tracking + r_action + r_punish
 
