@@ -30,8 +30,8 @@ from vae import VaribadVAE
 import torch.nn.functional as F
 
 device = 'cpu'
-load_path = "./logs/logs_MobileGoalClusterEnv-v0/cluster_73__08:09_15:45:47"
-iter = '19999'
+load_path = "./logs/logs_MobileGoalClusterEnv-v0/cluster_73__09:09_23:58:29"
+iter = '13999'
 with open(os.path.join(load_path, "config.json"),'r', encoding='UTF-8') as f:
     data_dict = json.load(f)
 args = argparse.ArgumentParser()
@@ -61,7 +61,7 @@ encoder = torch.load(os.path.join(load_path, 'models/encoder{}.pt'.format(iter))
 policy.eval()
 encoder.eval()
 
-legend = 'cluster_0809_154547'
+legend = 'cluster_0909_235829'
 os.makedirs('./weights/{}'.format(legend), exist_ok=True)
 torch.save(policy.state_dict(), './weights/{}/policy.pkl'.format(legend), _use_new_zipfile_serialization=False)
 torch.save(encoder.state_dict(), './weights/{}/encoder.pkl'.format(legend), _use_new_zipfile_serialization=False)
