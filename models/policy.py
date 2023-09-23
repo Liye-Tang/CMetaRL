@@ -196,16 +196,22 @@ class Policy(nn.Module):
                 task = self.task_encoder(task.float())
         else:
             task = torch.zeros(0, ).to(device)
+        
+        if not self.pass_latent_cls_to_policy or latent_cls_prob is None:
+            latent_cls_prob = torch.zeros(0, ).to(device)
 
         # concatenate inputs
-        inputs = torch.cat((state, latent, belief, task, latent_cls_prob), dim=-1)  # TODO
+        try:
+            inputs = torch.cat((state, latent, belief, task, latent_cls_prob), dim=-1)  # TODO
+        except:
+            pass
 
         # forward through critic/actor part
         hidden_critic = self.forward_critic(inputs)
         hidden_actor = self.forward_actor(inputs)
         return self.critic_linear(hidden_critic), hidden_actor
 
-    def act(self, state, latent, belief, task, latent_cls_prob=None, deterministic=False):
+    def act(self, state, latent, belief, task, latent_cls_prob, deterministic=False):
         """
         Returns the (raw) actions and their value.
         """

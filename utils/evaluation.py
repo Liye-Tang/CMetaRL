@@ -16,6 +16,7 @@ device = torch.device(device_name if torch.cuda.is_available() else "cpu")
 
 def evaluate(args,
              policy,
+             proto_proj,
              ret_rms,
              iter_idx,
              tasks,
@@ -64,6 +65,11 @@ def evaluate(args,
         latent_sample, latent_mean, latent_logvar, hidden_state = encoder.prior(num_processes)
     else:
         latent_sample = latent_mean = latent_logvar = hidden_state = None
+    
+    if proto_proj is not None:
+        latent_cls_prob = utl.cal_policy_prob(args=args, proto_proj=proto_proj, latent=latent_mean)
+    else:
+        latent_cls_prob = None
 
     for episode_idx in range(num_episodes):
         
@@ -85,6 +91,7 @@ def evaluate(args,
                                               latent_sample=latent_sample,
                                               latent_mean=latent_mean,
                                               latent_logvar=latent_logvar,
+                                              latent_cls_prob=latent_cls_prob,
                                               deterministic=True)
 
             # observe reward and next obs
@@ -111,7 +118,8 @@ def evaluate(args,
                                                                                               reward=rew_raw,
                                                                                               done=None,
                                                                                               hidden_state=hidden_state)
-
+            if proto_proj is not None:
+                latent_cls_prob = utl.cal_policy_prob(args=args, proto_proj=proto_proj, latent=latent_mean)
             # add rewards
             returns_per_episode[range(num_processes), task_count] += rew_raw.view(-1)
 

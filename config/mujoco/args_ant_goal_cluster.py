@@ -19,6 +19,7 @@ def get_args(rest_args):
     parser.add_argument('--pass_latent_to_policy', type=boolean_argument, default=True, help='condition policy on VAE latent')
     parser.add_argument('--pass_belief_to_policy', type=boolean_argument, default=False, help='condition policy on ground-truth belief')
     parser.add_argument('--pass_task_to_policy', type=boolean_argument, default=False, help='condition policy on ground-truth task description')
+    parser.add_argument('--pass_latent_cls_to_policy', type=boolean_argument, default=True, help='condition policy on latent class label')
 
     # using separate encoders for the different inputs ("None" uses no encoder)
     parser.add_argument('--policy_state_embedding_dim', type=int, default=64)
@@ -163,7 +164,7 @@ def get_args(rest_args):
                         help='KL term in ELBO to fixed Gaussian prior (instead of prev approx posterior)')
     
     # for the cluster loss   
-    parser.add_argument('--disable_cluster', type=boolean_argument, default=True, 
+    parser.add_argument('--disable_cluster', type=boolean_argument, default=False, 
                         help='dont use the cluster loss')
     parser.add_argument('--use_dist_latent', type=boolean_argument, default=False, 
                         help='use the dist latent')

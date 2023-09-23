@@ -107,7 +107,7 @@ class OnlineStorage(object):
             self.beliefs = self.beliefs.to(device)
         if self.args.pass_task_to_policy:
             self.tasks = self.tasks.to(device)
-        if self.args.pass_latent_to_policy:
+        if self.args.pass_latent_cls_to_policy:
             self.latent_cls_probs = [t.to(device) for t in self.latent_cls_probs]
         self.rewards_raw = self.rewards_raw.to(device)
         self.rewards_normalised = self.rewards_normalised.to(device)
@@ -171,6 +171,8 @@ class OnlineStorage(object):
             self.latent_mean = []
             self.latent_logvar = []
             self.hidden_states[0].copy_(self.hidden_states[-1])
+        if self.args.pass_latent_cls_to_policy:
+            self.latent_cls_probs = []
         self.done[0].copy_(self.done[-1])
         self.masks[0].copy_(self.masks[-1])
         self.bad_masks[0].copy_(self.bad_masks[-1])
@@ -269,6 +271,8 @@ class OnlineStorage(object):
                 latent_sample_batch = latent_mean_batch = latent_logvar_batch = None
             if self.args.pass_latent_cls_to_policy:
                 latent_cls_prob_batch = torch.cat(self.latent_cls_probs[:-1])[indices]
+            else:
+                latent_cls_prob_batch = None
             if self.args.pass_belief_to_policy:
                 belief_batch = self.beliefs[:-1].reshape(-1, *self.beliefs.size()[2:])[indices]
             else:

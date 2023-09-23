@@ -93,7 +93,7 @@ class MetaLearner:
                              num_processes=self.args.num_processes,
                              state_dim=self.args.state_dim,
                              latent_dim=self.args.latent_dim,
-                             latent_cls_dim=self.args.num_cls,
+                             latent_cls_dim=self.args.num_prototypes,
                              belief_dim=self.args.belief_dim,
                              task_dim=self.args.task_dim,
                              action_space=self.args.action_space,
@@ -117,7 +117,7 @@ class MetaLearner:
             dim_latent=self.args.latent_dim * 2 if self.args.use_dist_latent else self.args.latent_dim,
             dim_belief=self.args.belief_dim,
             dim_task=self.args.task_dim,
-            dim_latent_cls = self.args.num_cls,
+            dim_latent_cls = self.args.num_prototypes,
             #
             hidden_layers=self.args.policy_layers,
             activation_function=self.args.policy_activation_function,
@@ -193,6 +193,7 @@ class MetaLearner:
             self.policy_storage.latent_samples.append(latent_sample.clone())
             self.policy_storage.latent_mean.append(latent_mean.clone())
             self.policy_storage.latent_logvar.append(latent_logvar.clone())
+            self.policy_storage.latent_cls_probs.append(latent_cls_prob.clone())
 
             # rollout policies for a few steps
             for step in range(self.args.policy_num_steps):
@@ -315,7 +316,7 @@ class MetaLearner:
         self.envs.close()
 
     def cal_the_latent_cls(self, latent):
-        if self.args.disable_cluster:             
+        if not self.args.disable_cluster:             
             latent_cls_prob = self.vae.cal_policy_prob(latent).to(device)         
         else:             
             latent_cls_prob = None
@@ -347,9 +348,9 @@ class MetaLearner:
 
         return latent_sample, latent_mean, latent_logvar, hidden_state
 
-    def get_value(self, state, belief, task, latent_sample, latent_mean, latent_logvar):
+    def get_value(self, state, belief, task, latent_sample, latent_mean, latent_logvar, latent_cls_prob):
         latent = utl.get_latent_for_policy(self.args, latent_sample=latent_sample, latent_mean=latent_mean, latent_logvar=latent_logvar)
-        latent_cls_prob = self.cal_the_latent_cls(latent)
+        # latent_cls_prob = self.cal_the_latent_cls(latent)
         return self.policy.actor_critic.get_value(state=state, belief=belief, task=task, latent=latent, latent_cls_prob=latent_cls_prob).detach()
 
     def update(self, state, belief, task, latent_sample, latent_mean, latent_logvar, latent_cls_prob):
@@ -395,23 +396,23 @@ class MetaLearner:
 
         # --- visualise behaviour of policy ---
 
-        if (self.iter_idx + 1) % self.args.vis_interval == 0:
-            ret_rms = self.envs.venv.ret_rms if self.args.norm_rew_for_policy else None
-            utl_eval.visualise_behaviour(args=self.args,
-                                         policy=self.policy,
-                                         image_folder=self.logger.full_output_folder,
-                                         iter_idx=self.iter_idx,
-                                         ret_rms=ret_rms,
-                                         encoder=self.vae.encoder,
-                                         reward_decoder=self.vae.reward_decoder,
-                                         state_decoder=self.vae.state_decoder,
-                                         task_decoder=self.vae.task_decoder,
-                                         compute_rew_reconstruction_loss=self.vae.compute_rew_reconstruction_loss,
-                                         compute_state_reconstruction_loss=self.vae.compute_state_reconstruction_loss,
-                                         compute_task_reconstruction_loss=self.vae.compute_task_reconstruction_loss,
-                                         compute_kl_loss=self.vae.compute_kl_loss,
-                                         tasks=self.train_tasks,
-                                         )
+        # if (self.iter_idx + 1) % self.args.vis_interval == 0:
+        #     ret_rms = self.envs.venv.ret_rms if self.args.norm_rew_for_policy else None
+        #     utl_eval.visualise_behaviour(args=self.args,
+        #                                  policy=self.policy,
+        #                                  image_folder=self.logger.full_output_folder,
+        #                                  iter_idx=self.iter_idx,
+        #                                  ret_rms=ret_rms,
+        #                                  encoder=self.vae.encoder,
+        #                                  reward_decoder=self.vae.reward_decoder,
+        #                                  state_decoder=self.vae.state_decoder,
+        #                                  task_decoder=self.vae.task_decoder,
+        #                                  compute_rew_reconstruction_loss=self.vae.compute_rew_reconstruction_loss,
+        #                                  compute_state_reconstruction_loss=self.vae.compute_state_reconstruction_loss,
+        #                                  compute_task_reconstruction_loss=self.vae.compute_task_reconstruction_loss,
+        #                                  compute_kl_loss=self.vae.compute_kl_loss,
+        #                                  tasks=self.train_tasks,
+        #                                  )
 
         # --- evaluate policy ----
 
@@ -420,6 +421,7 @@ class MetaLearner:
             ret_rms = self.envs.venv.ret_rms if self.args.norm_rew_for_policy else None
             returns_per_episode = utl_eval.evaluate(args=self.args,
                                                     policy=self.policy,
+                                                    proto_proj=self.vae.proto_proj,
                                                     ret_rms=ret_rms,
                                                     encoder=self.vae.encoder,
                                                     iter_idx=self.iter_idx,

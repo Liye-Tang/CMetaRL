@@ -99,6 +99,8 @@ class PPO:
                         latent_sample_batch = latent_sample_batch.detach()
                         latent_mean_batch = latent_mean_batch.detach()
                         latent_logvar_batch = latent_logvar_batch.detach()
+                    if latent_cls_prob_batch is not None:
+                        latent_cls_prob_batch = latent_cls_prob_batch.detach()
 
                 latent_batch = utl.get_latent_for_policy(args=self.args, latent_sample=latent_sample_batch,
                                                          latent_mean=latent_mean_batch,
@@ -109,7 +111,7 @@ class PPO:
                 values, action_log_probs, dist_entropy = \
                     self.actor_critic.evaluate_actions(state=state_batch, latent=latent_batch,
                                                        belief=belief_batch, task=task_batch,
-                                                       action=actions_batch, latent_cls_probs=latent_cls_prob_batch)
+                                                       action=actions_batch, latent_cls_prob=latent_cls_prob_batch)
 
                 ratio = torch.exp(action_log_probs -
                                   old_action_log_probs_batch)
@@ -190,5 +192,5 @@ class PPO:
 
         return value_loss_epoch, action_loss_epoch, dist_entropy_epoch, loss_epoch
 
-    def act(self, state, latent, belief, task, deterministic=False):
-        return self.actor_critic.act(state=state, latent=latent, belief=belief, task=task, deterministic=deterministic)
+    def act(self, state, latent, belief, task, latent_cls_prob, deterministic=False):
+        return self.actor_critic.act(state=state, latent=latent, belief=belief, task=task, latent_cls_prob=latent_cls_prob, deterministic=deterministic)
