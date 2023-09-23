@@ -93,6 +93,7 @@ class MetaLearner:
                              num_processes=self.args.num_processes,
                              state_dim=self.args.state_dim,
                              latent_dim=self.args.latent_dim,
+                             latent_cls_dim=self.args.num_cls,
                              belief_dim=self.args.belief_dim,
                              task_dim=self.args.task_dim,
                              action_space=self.args.action_space,
@@ -111,10 +112,12 @@ class MetaLearner:
             pass_latent_to_policy=self.args.pass_latent_to_policy,
             pass_belief_to_policy=self.args.pass_belief_to_policy,
             pass_task_to_policy=self.args.pass_task_to_policy,
+            pass_latent_cls_to_policy=self.args.pass_latent_cls_to_policy,
             dim_state=self.args.state_dim,
             dim_latent=self.args.latent_dim * 2 if self.args.use_dist_latent else self.args.latent_dim,
             dim_belief=self.args.belief_dim,
             dim_task=self.args.task_dim,
+            dim_latent_cls = self.args.num_cls,
             #
             hidden_layers=self.args.policy_layers,
             activation_function=self.args.policy_activation_function,
@@ -182,6 +185,8 @@ class MetaLearner:
             with torch.no_grad():
                 latent_sample, latent_mean, latent_logvar, hidden_state = self.encode_running_trajectory()
 
+            latent_cls_prob = self.cal_the_latent_cls(latent_mean)
+
             # add this initial hidden state to the policy storage
             assert len(self.policy_storage.latent_mean) == 0  # make sure we emptied buffers
             self.policy_storage.hidden_states[0].copy_(hidden_state)
@@ -205,6 +210,7 @@ class MetaLearner:
                         latent_sample=latent_sample,
                         latent_mean=latent_mean,
                         latent_logvar=latent_logvar,
+                        latent_cls_prob=latent_cls_prob
                     )
 
                 # take step in the environment
@@ -225,6 +231,8 @@ class MetaLearner:
                         reward=rew_raw,
                         done=done,
                         hidden_state=hidden_state)
+                    
+                    latent_cls_prob = self.cal_the_latent_cls(latent_mean)
 
                 # before resetting, update the embedding and add to vae buffer
                 # (last state might include useful task info)
@@ -258,6 +266,7 @@ class MetaLearner:
                     state=next_state,
                     belief=belief,
                     task=task,
+                    latent_cls_prob=latent_cls_prob,
                     actions=action,
                     rewards_raw=rew_raw,
                     rewards_normalised=rew_normalised,
@@ -292,7 +301,8 @@ class MetaLearner:
                                               task=task,
                                               latent_sample=latent_sample,
                                               latent_mean=latent_mean,
-                                              latent_logvar=latent_logvar)
+                                              latent_logvar=latent_logvar,
+                                              latent_cls_prob=latent_cls_prob)
 
                     # log
                     run_stats = [action, self.policy_storage.action_log_probs, value]
@@ -303,6 +313,14 @@ class MetaLearner:
             self.policy_storage.after_update()
 
         self.envs.close()
+
+    def cal_the_latent_cls(self, latent):
+        if self.args.disable_cluster:             
+            latent_cls_prob = self.vae.cal_policy_prob(latent).to(device)         
+        else:             
+            latent_cls_prob = None
+
+        return latent_cls_prob
 
     def encode_running_trajectory(self):
         """
@@ -331,9 +349,10 @@ class MetaLearner:
 
     def get_value(self, state, belief, task, latent_sample, latent_mean, latent_logvar):
         latent = utl.get_latent_for_policy(self.args, latent_sample=latent_sample, latent_mean=latent_mean, latent_logvar=latent_logvar)
-        return self.policy.actor_critic.get_value(state=state, belief=belief, task=task, latent=latent).detach()
+        latent_cls_prob = self.cal_the_latent_cls(latent)
+        return self.policy.actor_critic.get_value(state=state, belief=belief, task=task, latent=latent, latent_cls_prob=latent_cls_prob).detach()
 
-    def update(self, state, belief, task, latent_sample, latent_mean, latent_logvar):
+    def update(self, state, belief, task, latent_sample, latent_mean, latent_logvar, latent_cls_prob):
         """
         Meta-update.
         Here the policy is updated for good average performance across tasks.
@@ -349,7 +368,8 @@ class MetaLearner:
                                             task=task,
                                             latent_sample=latent_sample,
                                             latent_mean=latent_mean,
-                                            latent_logvar=latent_logvar)
+                                            latent_logvar=latent_logvar,
+                                            latent_cls_prob=latent_cls_prob)
 
             # compute returns for current rollouts
             self.policy_storage.compute_returns(next_value, self.args.policy_use_gae, self.args.policy_gamma,

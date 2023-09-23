@@ -721,3 +721,10 @@ class VaribadVAE:
         log_prob = F.log_softmax(scores / self.args.temperature, dim=-1)
         policy_nums = torch.max(log_prob, dim=-1)[1].unsqueeze(-1)
         return policy_nums
+    
+    def cal_policy_prob(self, latent):
+        # latent = latent.reshape(-1, self.latent_dim)
+        embedding = F.normalize(latent, dim=-1, p=2)
+        scores = self.proto_proj(embedding)
+        prob = F.softmax(scores / self.args.temperature, dim=-1)
+        return prob

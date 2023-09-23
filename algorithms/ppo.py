@@ -90,8 +90,8 @@ class PPO:
             for sample in data_generator:
 
                 state_batch, belief_batch, task_batch, \
-                actions_batch, latent_sample_batch, latent_mean_batch, latent_logvar_batch, value_preds_batch, \
-                return_batch, old_action_log_probs_batch, adv_targ = sample
+                actions_batch, latent_sample_batch, latent_mean_batch, latent_logvar_batch, latent_cls_prob_batch, \
+                value_preds_batch, return_batch, old_action_log_probs_batch, adv_targ = sample
 
                 if not rlloss_through_encoder:
                     state_batch = state_batch.detach()
@@ -109,7 +109,7 @@ class PPO:
                 values, action_log_probs, dist_entropy = \
                     self.actor_critic.evaluate_actions(state=state_batch, latent=latent_batch,
                                                        belief=belief_batch, task=task_batch,
-                                                       action=actions_batch)
+                                                       action=actions_batch, latent_cls_probs=latent_cls_prob_batch)
 
                 ratio = torch.exp(action_log_probs -
                                   old_action_log_probs_batch)

@@ -24,7 +24,7 @@ class OnlineStorage(object):
                  args, num_steps, num_processes,
                  state_dim, belief_dim, task_dim,
                  action_space,
-                 hidden_size, latent_dim, normalise_rewards):
+                 hidden_size, latent_dim, latent_cls_dim, normalise_rewards):
 
         self.args = args
         self.state_dim = state_dim
@@ -65,6 +65,10 @@ class OnlineStorage(object):
             self.tasks = torch.zeros(num_steps + 1, num_processes, task_dim)
         else:
             self.tasks = None
+        if self.args.pass_latent_cls_to_policy:
+            self.latent_cls_probs = []
+        else:
+            self.latent_cls_probs = None
 
         # rewards and end of episodes
         self.rewards_raw = torch.zeros(num_steps, num_processes, 1)
@@ -103,6 +107,8 @@ class OnlineStorage(object):
             self.beliefs = self.beliefs.to(device)
         if self.args.pass_task_to_policy:
             self.tasks = self.tasks.to(device)
+        if self.args.pass_latent_to_policy:
+            self.latent_cls_probs = [t.to(device) for t in self.latent_cls_probs]
         self.rewards_raw = self.rewards_raw.to(device)
         self.rewards_normalised = self.rewards_normalised.to(device)
         self.done = self.done.to(device)
@@ -116,6 +122,7 @@ class OnlineStorage(object):
                state,
                belief,
                task,
+               latent_cls_prob,
                actions,
                rewards_raw,
                rewards_normalised,
@@ -139,6 +146,8 @@ class OnlineStorage(object):
             self.latent_mean.append(latent_mean.detach().clone())
             self.latent_logvar.append(latent_logvar.detach().clone())
             self.hidden_states[self.step + 1].copy_(hidden_states.detach())
+        if self.args.pass_latent_cls_to_policy:
+            self.latent_cls_probs.append(latent_cls_prob.detach().clone())
         self.actions[self.step] = actions.detach().clone()
         self.rewards_raw[self.step].copy_(rewards_raw)
         self.rewards_normalised[self.step].copy_(rewards_normalised)
@@ -222,7 +231,9 @@ class OnlineStorage(object):
                                                          latent,
                                                          self.beliefs[:-1] if self.beliefs is not None else None,
                                                          self.tasks[:-1] if self.tasks is not None else None,
-                                                         self.actions)
+                                                         self.actions, 
+                                                         torch.stack(                                                
+                                                            self.latent_cls_probs[:-1]) if self.latent_cls_probs is not None else None)
         self.action_log_probs = action_log_probs.detach()
 
     def feed_forward_generator(self,
@@ -256,6 +267,8 @@ class OnlineStorage(object):
                 latent_logvar_batch = torch.cat(self.latent_logvar[:-1])[indices]
             else:
                 latent_sample_batch = latent_mean_batch = latent_logvar_batch = None
+            if self.args.pass_latent_cls_to_policy:
+                latent_cls_prob_batch = torch.cat(self.latent_cls_probs[:-1])[indices]
             if self.args.pass_belief_to_policy:
                 belief_batch = self.beliefs[:-1].reshape(-1, *self.beliefs.size()[2:])[indices]
             else:
@@ -278,5 +291,5 @@ class OnlineStorage(object):
 
             yield state_batch, belief_batch, task_batch, \
                   actions_batch, \
-                  latent_sample_batch, latent_mean_batch, latent_logvar_batch, \
+                  latent_sample_batch, latent_mean_batch, latent_logvar_batch, latent_cls_prob_batch, \
                   value_preds_batch, return_batch, old_action_log_probs_batch, adv_targ

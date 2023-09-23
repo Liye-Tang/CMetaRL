@@ -40,10 +40,12 @@ class Policy(nn.Module):
                  pass_latent_to_policy,
                  pass_belief_to_policy,
                  pass_task_to_policy,
+                 pass_latent_cls_to_policy,
                  dim_state,
                  dim_latent,
                  dim_belief,
                  dim_task,
+                 dim_latent_cls,
                  # hidden
                  hidden_layers,
                  activation_function,  # tanh, relu, leaky-relu
@@ -80,6 +82,7 @@ class Policy(nn.Module):
         self.pass_latent_to_policy = pass_latent_to_policy
         self.pass_task_to_policy = pass_task_to_policy
         self.pass_belief_to_policy = pass_belief_to_policy
+        self.pass_latent_cls_to_policy = pass_latent_cls_to_policy
 
         # set normalisation parameters for the inputs
         # (will be updated from outside using the RL batches)
@@ -99,7 +102,8 @@ class Policy(nn.Module):
         curr_input_dim = dim_state * int(self.pass_state_to_policy) + \
                          dim_latent * int(self.pass_latent_to_policy) + \
                          dim_belief * int(self.pass_belief_to_policy) + \
-                         dim_task * int(self.pass_task_to_policy)
+                         dim_task * int(self.pass_task_to_policy) + \
+                         dim_latent_cls * int(self.pass_latent_cls_to_policy)   # TODO
         # initialise encoders for separate inputs
         self.use_state_encoder = self.args.policy_state_embedding_dim is not None
         if self.pass_state_to_policy and self.use_state_encoder:
@@ -160,7 +164,7 @@ class Policy(nn.Module):
             h = self.activation_function(h)
         return h
 
-    def forward(self, state, latent, belief, task):
+    def forward(self, state, latent, belief, task, latent_cls_prob):
 
         # handle inputs (normalise + embed)
 
@@ -194,18 +198,18 @@ class Policy(nn.Module):
             task = torch.zeros(0, ).to(device)
 
         # concatenate inputs
-        inputs = torch.cat((state, latent, belief, task), dim=-1)
+        inputs = torch.cat((state, latent, belief, task, latent_cls_prob), dim=-1)  # TODO
 
         # forward through critic/actor part
         hidden_critic = self.forward_critic(inputs)
         hidden_actor = self.forward_actor(inputs)
         return self.critic_linear(hidden_critic), hidden_actor
 
-    def act(self, state, latent, belief, task, deterministic=False):
+    def act(self, state, latent, belief, task, latent_cls_prob=None, deterministic=False):
         """
         Returns the (raw) actions and their value.
         """
-        value, actor_features = self.forward(state=state, latent=latent, belief=belief, task=task)
+        value, actor_features = self.forward(state=state, latent=latent, belief=belief, task=task, latent_cls_prob=latent_cls_prob)
         dist = self.dist(actor_features)
         if deterministic:
             if isinstance(dist, FixedCategorical):
@@ -217,8 +221,8 @@ class Policy(nn.Module):
 
         return value, action
 
-    def get_value(self, state, latent, belief, task):
-        value, _ = self.forward(state, latent, belief, task)
+    def get_value(self, state, latent, belief, task, latent_cls_prob):
+        value, _ = self.forward(state, latent, belief, task, latent_cls_prob)
         return value
 
     def update_rms(self, args, policy_storage):
@@ -237,9 +241,9 @@ class Policy(nn.Module):
         if self.pass_task_to_policy and self.norm_task:
             self.task_rms.update(policy_storage.tasks[:-1])
 
-    def evaluate_actions(self, state, latent, belief, task, action):
+    def evaluate_actions(self, state, latent, belief, task, action, latent_cls_prob):
 
-        value, actor_features = self.forward(state, latent, belief, task)
+        value, actor_features = self.forward(state, latent, belief, task, latent_cls_prob)
         dist = self.dist(actor_features)
 
         if self.args.norm_actions_post_sampling:
