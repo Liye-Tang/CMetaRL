@@ -185,7 +185,7 @@ class MetaLearner:
             with torch.no_grad():
                 latent_sample, latent_mean, latent_logvar, hidden_state = self.encode_running_trajectory()
 
-            latent_cls_prob = self.cal_the_latent_cls(latent_mean)
+                latent_cls_prob = self.cal_the_latent_cls(latent_mean)
 
             # add this initial hidden state to the policy storage
             assert len(self.policy_storage.latent_mean) == 0  # make sure we emptied buffers
