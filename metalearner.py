@@ -193,7 +193,8 @@ class MetaLearner:
             self.policy_storage.latent_samples.append(latent_sample.clone())
             self.policy_storage.latent_mean.append(latent_mean.clone())
             self.policy_storage.latent_logvar.append(latent_logvar.clone())
-            self.policy_storage.latent_cls_probs.append(latent_cls_prob.clone())
+            if not self.args.disable_cluster:
+                self.policy_storage.latent_cls_probs.append(latent_cls_prob.clone())
 
             # rollout policies for a few steps
             for step in range(self.args.policy_num_steps):
