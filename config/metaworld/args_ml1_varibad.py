@@ -7,7 +7,7 @@ def get_args(rest_args):
 
     # --- GENERAL ---
 
-    parser.add_argument('--num_frames', type=int, default=1e8, help='number of frames to train')
+    parser.add_argument('--num_frames', type=int, default=4e8, help='number of frames to train')
     parser.add_argument('--max_rollouts_per_task', type=int, default=1, help='number of MDP episodes for adaptation')
     parser.add_argument('--exp_label', default='varibad', help='label (typically name of method)')
     parser.add_argument('--env_name', default='ML1-v0', help='environment to train on')
@@ -19,6 +19,8 @@ def get_args(rest_args):
     parser.add_argument('--pass_latent_to_policy', type=boolean_argument, default=True, help='condition policy on VAE latent')
     parser.add_argument('--pass_belief_to_policy', type=boolean_argument, default=False, help='condition policy on ground-truth belief')
     parser.add_argument('--pass_task_to_policy', type=boolean_argument, default=False, help='condition policy on ground-truth task description')
+    parser.add_argument('--pass_latent_cls_to_policy', type=boolean_argument, default=True, help='condition policy on latent cls')
+    parser.add_argument('--is_cls_prob', type=boolean_argument, default=True, help='probable cls')
 
     # using separate encoders for the different inputs ("None" uses no encoder)
     parser.add_argument('--policy_state_embedding_dim', type=int, default=64)
@@ -140,7 +142,7 @@ def get_args(rest_args):
     parser.add_argument('--task_pred_type', type=str, default='task_id', help='choose: task_id, task_description')
     
     # --- CLUSTER TRAINING ---
-    parser.add_argument('--num_prototypes', type=int, default=10, help='the num of the classes: K')
+    parser.add_argument('--num_prototypes', type=int, default=4, help='the num of the classes: K')
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
@@ -155,7 +157,7 @@ def get_args(rest_args):
                         help='train without decoder')
     parser.add_argument('--disable_stochasticity_in_latent', type=boolean_argument, default=False,
                         help='use auto-encoder (non-variational)')
-    parser.add_argument('--disable_kl_term', type=boolean_argument, default=False,
+    parser.add_argument('--disable_kl_term', type=boolean_argument, default=True,
                         help='dont use the KL regularising loss term')
     parser.add_argument('--decode_only_past', type=boolean_argument, default=False,
                         help='only decoder past observations, not the future')
@@ -163,8 +165,8 @@ def get_args(rest_args):
                         help='KL term in ELBO to fixed Gaussian prior (instead of prev approx posterior)')
         
     # for the cluster loss   
-    parser.add_argument('--disable_cluster', type=boolean_argument, default=True, help='dont use the cluster loss')
-    parser.add_argument('--use_dist_latent', type=boolean_argument, default=True, help='use the dist latent')
+    parser.add_argument('--disable_cluster', type=boolean_argument, default=False, help='dont use the cluster loss')
+    parser.add_argument('--use_dist_latent', type=boolean_argument, default=False, help='use the dist latent')
 
     # combining vae and RL loss
     parser.add_argument('--rlloss_through_encoder', type=boolean_argument, default=False,

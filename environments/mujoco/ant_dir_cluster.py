@@ -11,7 +11,8 @@ class AntDirClusterEnv(AntEnv):
     """
 
     def __init__(self, max_episode_steps=200):
-        self.num_cls = 4
+        self.seed()
+        self.num_cls = 16
         self.set_task(self.sample_tasks(1)[0])
         self._max_episode_steps = max_episode_steps
         self.task_dim = 1
@@ -46,21 +47,23 @@ class AntDirClusterEnv(AntEnv):
         )
 
     def sample_tasks(self, num_tasks):
-        task_clses = [random.randint(0, self.num_cls - 1) for _ in range(num_tasks)]
+        task_clses = [self.np_random.randint(0, self.num_cls) for _ in range(num_tasks)]
         self.task_cls = task_clses[0]
         # for fwd/bwd env, goal direc is backwards if - 1.0, forwards if + 1.0
         a = np.array([self.sample_task_per_cls(task_cls) for task_cls in task_clses])
         return a
     
     def sample_task_per_cls(self, task_cls):
-        if task_cls == 0:
-            a = random.uniform(1/16, 3/16) * 2 * np.pi
-        elif task_cls == 1:
-            a = random.uniform(5/16, 7/16) * 2 * np.pi
-        elif task_cls == 2:
-            a = random.uniform(9/16, 11/16) * 2 * np.pi
-        else:
-            a = random.uniform(13/16, 15/16) * 2 * np.pi 
+        a = task_cls * np.pi * 2 / self.num_cls + \
+        self.np_random.uniform(-np.pi * 0.1 / self.num_cls, np.pi * 0.1 / self.num_cls)
+        # if task_cls == 0:
+        #     a = self.np_random.uniform(1/16, 3/16) * 2 * np.pi
+        # elif task_cls == 1:
+        #     a = self.np_random.uniform(5/16, 7/16) * 2 * np.pi
+        # elif task_cls == 2:
+        #     a = self.np_random.uniform(9/16, 11/16) * 2 * np.pi
+        # else:
+        #     a = self.np_random.uniform(13/16, 15/16) * 2 * np.pi
         return a
     
     def get_task_cls(self):
@@ -89,7 +92,7 @@ class AntDirClusterEnv(AntEnv):
 class AntDir2DEnv(AntDirClusterEnv):
     def sample_tasks(self, n_tasks):
         # for fwd/bwd env, goal direc is backwards if - 1.0, forwards if + 1.0
-        directions = np.array([random.gauss(mu=0, sigma=1) for _ in range(n_tasks * 2)]).reshape((n_tasks, 2))
+        directions = np.array([self.np_random.gauss(mu=0, sigma=1) for _ in range(n_tasks * 2)]).reshape((n_tasks, 2))
         directions /= np.linalg.norm(directions, axis=1)[..., np.newaxis]
         return directions
 

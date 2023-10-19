@@ -2,6 +2,7 @@ import os
 import time
 
 import gym
+import imageio
 import numpy as np
 import torch
 import json
@@ -39,8 +40,8 @@ class TestPolicy():
         self.load_path = load_path
         self.iter = iter
         
-        self.task_color_list = list(mcolors.BASE_COLORS.keys())
-        self.context_color_list = list(mcolors.TABLEAU_COLORS.keys())
+        self.task_color_list = list(mcolors.BASE_COLORS.keys()) * 3
+        self.context_color_list = list(mcolors.TABLEAU_COLORS.keys()) * 3
         
         with open(os.path.join(self.load_path, "config.json"),'r', encoding='UTF-8') as f:
             data_dict = json.load(f)
@@ -90,8 +91,9 @@ class TestPolicy():
         context_cls_list = [self.cal_context_cls(context) for context in context_list]
         return context_cls_list
     
-    def run_an_episode(self, num_steps, render=False, task=None):
+    def run_an_episode(self, num_steps, render=False, task=None, episode_ID=1):
         context_list = []
+        TAR = 0
         state = self.env.reset(task=task)
         state = torch.from_numpy(state).float().to(device).unsqueeze(0)
 
@@ -100,6 +102,14 @@ class TestPolicy():
             latent_sample, latent_mean, latent_logvar, hidden_state = self.encoder.prior(1)
         else:
             latent_sample = latent_mean = latent_logvar = hidden_state = None
+
+        latent_cls_prob = None
+        if self.args.pass_latent_cls_to_policy:
+            # latent = latent.reshape(-1, self.latent_dim)
+            embedding = F.normalize(latent_mean, dim=-1, p=2)
+            scores = self.proto_proj(embedding)
+            latent_cls_prob = F.softmax(scores / self.args.temperature, dim=-1).squeeze(0)
+            
         for step_idx in range(num_steps):
             with torch.no_grad():
                 _, action = utl.select_action(args=self.args,
@@ -110,9 +120,15 @@ class TestPolicy():
                                               latent_sample=latent_sample,
                                               latent_mean=latent_mean,
                                               latent_logvar=latent_logvar,
+                                              latent_cls_prob=latent_cls_prob,
                                               deterministic=True)
+                # print(action)
+                # action = torch.tensor([[0.1, 0.1]])
 
             state, rew_raw, done, info = self.env.step(action.cpu().numpy()[0])
+            state = state + np.concatenate((np.random.random(5) * 0.1, np.array([0])))
+            TAR += rew_raw
+            # print(state[2])
             if render:
                 self.env.render()
             
@@ -128,17 +144,23 @@ class TestPolicy():
                                                                                                 hidden_state=hidden_state)
                 latent_sample, latent_mean, latent_logvar, hidden_state = latent_sample.unsqueeze(0), latent_mean.unsqueeze(0), latent_logvar.unsqueeze(0), hidden_state.unsqueeze(0)
             
-            context_list.append(latent_mean[0, 0].numpy())
+            if step_idx > 100:
+                context_list.append(latent_mean[0, 0].numpy())
             if done:
                 break
-        return context_list
+        # print(TAR)
+        # with imageio.get_writer(uri='./test_results/test{}_n.gif'.format(episode_ID), mode='I', fps=10) as writer:
+        #     for i in range(200):
+        #         writer.append_data(imageio.imread('./test_results/{}.jpg'.format(i)))
+        #         os.remove('./test_results/{}.jpg'.format(i))
+        return context_list, TAR
 
     def run_n_episode(self, n):
         for i in range(n):
             self.run_an_episode()
 
     def get_context_and_cls_for_task(self, num_steps=200, start_step_idx=100, task=None):
-        context_list = self.run_an_episode(num_steps=num_steps)
+        context_list, _ = self.run_an_episode(num_steps=num_steps)
         context_cls_list = self.get_context_cls_list(context_list) if not self.args.disable_cluster else None
         return context_list, context_cls_list
     
@@ -184,17 +206,36 @@ class TestPolicy():
         
 def main():
     # the policy and configuration path
-    load_path = 'logs/logs_MobileGoalClusterEnv-v0/cluster_73__06:09_20:50:57'
-    iter = 19999
+    load_path = "logs/logs_MobileGoalClusterEnv-v0/cluster_173__07:10_12:24:31"
+    iter = 29999
 
     test = TestPolicy(load_path, iter)
-    test.run_an_episode()
-    # print(latent_sample, latent_mean, latent_logvar, hidden_state)
+    
+    # test.run_an_episode(num_steps=200, episode_ID=i)
+    # tar_list = []
+    # for i in range(1):
+    #     _, tar = test.run_an_episode(200)
+    #     tar_list.append(tar)
+    # mean_tar = np.mean(tar_list)
+    # print(mean_tar)
+
+    
+    # load_path = 'logs\cluster_73_1609_001007'     
+    # iter = 29999
+    # test = TestPolicy(load_path, iter)     
+    # tar_list = []
+    # for i in range(10):
+    #     _, tar = test.run_an_episode(200)
+    #     tar_list.append(tar)
+    # mean_tar = np.mean(tar_list)
+    # print(mean_tar)
+    # # print(latent_sample, latent_mean, latent_logvar, hidden_state)
     # latent_sample, latent_mean, latent_logvar, hidden_state = test.encoder.prior(1)     
     # print(latent_mean)
     # test.run_an_episode(num_steps=200)
-    # test.visualize_context(num_tasks=100)
+    test.visualize_context(num_tasks=100)
     # print(action)
 
 if __name__ == "__main__":
-    main()
+    for i in range(10):
+        main()

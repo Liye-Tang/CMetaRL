@@ -539,7 +539,7 @@ class VaribadVAE:
 
         return rew_reconstruction_loss, state_reconstruction_loss, task_reconstruction_loss, kl_loss
 
-    def compute_vae_loss(self, update=False, pretrain_index=None):
+    def compute_vae_loss(self, update=False, iter_idx=None, pretrain_index=None):
         """ Returns the VAE loss """
 
         if not self.rollout_storage.ready_for_update():
@@ -617,6 +617,12 @@ class VaribadVAE:
                     nn.utils.clip_grad_norm_(self.state_decoder.parameters(), self.args.decoder_max_grad_norm)
                 if self.args.decode_task:
                     nn.utils.clip_grad_norm_(self.task_decoder.parameters(), self.args.decoder_max_grad_norm)
+            if not self.args.disable_cluster:
+                nn.utils.clip_grad_norm_(self.proto_proj.parameters(), 1)
+                # freeze the proto
+                if iter_idx < self.args.unfreeze_proto_interval[0]:
+                    for p in self.proto_proj.parameters():
+                        p.grad = None
             # update
             self.optimiser_vae.step()
 
@@ -723,8 +729,16 @@ class VaribadVAE:
         return policy_nums
     
     def cal_policy_prob(self, latent):
-        # latent = latent.reshape(-1, self.latent_dim)
-        embedding = F.normalize(latent, dim=-1, p=2)
-        scores = self.proto_proj(embedding)
-        prob = F.softmax(scores / self.args.temperature, dim=-1)
-        return prob
+        if self.args.is_cls_prob:
+            # latent = latent.reshape(-1, self.latent_dim)
+            embedding = F.normalize(latent, dim=-1, p=2)
+            scores = self.proto_proj(embedding)
+            prob = F.softmax(scores / self.args.temperature, dim=-1)
+            return prob
+        else:
+            latent = latent.reshape(-1, self.latent_dim)             
+            embedding = F.normalize(latent, dim=-1, p=2)             
+            scores = self.proto_proj(embedding)             
+            latent_cls_prob = F.softmax(scores / self.args.temperature, dim=-1)
+            latent_cls_one_hot = ((latent_cls_prob - torch.max(latent_cls_prob, dim=-1, keepdim=True)[0]) == 0).float()
+            return latent_cls_one_hot

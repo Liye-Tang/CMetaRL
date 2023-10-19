@@ -19,6 +19,8 @@ def get_args(rest_args):
     parser.add_argument('--pass_latent_to_policy', type=boolean_argument, default=True, help='condition policy on VAE latent')
     parser.add_argument('--pass_belief_to_policy', type=boolean_argument, default=False, help='condition policy on ground-truth belief')
     parser.add_argument('--pass_task_to_policy', type=boolean_argument, default=False, help='condition policy on ground-truth task description')
+    parser.add_argument('--pass_latent_cls_to_policy', type=boolean_argument, default=False, help='condition policy on latent cls')
+    parser.add_argument('--is_cls_prob', type=boolean_argument, default=True, help='probable cls')
 
     # using separate encoders for the different inputs ("None" uses no encoder)
     parser.add_argument('--policy_state_embedding_dim', type=int, default=64)
@@ -46,8 +48,8 @@ def get_args(rest_args):
     parser.add_argument('--policy_optimiser', type=str, default='adam', help='choose: rmsprop, adam')
 
     # PPO specific
-    parser.add_argument('--ppo_num_epochs', type=int, default=2, help='number of epochs per PPO update')
-    parser.add_argument('--ppo_num_minibatch', type=int, default=1, help='number of minibatches to split the data')
+    parser.add_argument('--ppo_num_epochs', type=int, default=4, help='number of epochs per PPO update')
+    parser.add_argument('--ppo_num_minibatch', type=int, default=20, help='number of minibatches to split the data')
     parser.add_argument('--ppo_use_huberloss', type=boolean_argument, default=True, help='use huberloss instead of MSE')
     parser.add_argument('--ppo_use_clipped_value_loss', type=boolean_argument, default=True, help='clip value loss')
     parser.add_argument('--ppo_clip_param', type=float, default=0.1, help='clamp param')
@@ -59,13 +61,13 @@ def get_args(rest_args):
     parser.add_argument('--policy_num_steps', type=int, default=500,
                         help='number of env steps to do (per process) before updating')
     parser.add_argument('--policy_eps', type=float, default=1e-8, help='optimizer epsilon (1e-8 for ppo, 1e-5 for a2c)')
-    parser.add_argument('--policy_init_std', type=float, default=1.0, help='only used for continuous actions')
+    parser.add_argument('--policy_init_std', type=float, default=3.0, help='only used for continuous actions')
     parser.add_argument('--policy_value_loss_coef', type=float, default=0.5, help='value loss coefficient')
     parser.add_argument('--policy_entropy_coef', type=float, default=0.01, help='entropy term coefficient')
     parser.add_argument('--policy_gamma', type=float, default=0.97, help='discount factor for rewards')
     parser.add_argument('--policy_use_gae', type=boolean_argument, default=True,
                         help='use generalized advantage estimation')
-    parser.add_argument('--policy_tau', type=float, default=0.9, help='gae parameter')
+    parser.add_argument('--policy_tau', type=float, default=0.95, help='gae parameter')
     parser.add_argument('--use_proper_time_limits', type=boolean_argument, default=True,
                         help='treat timeout and death differently (important in mujoco)')
     parser.add_argument('--policy_max_grad_norm', type=float, default=0.5, help='max norm of gradients')
@@ -140,13 +142,14 @@ def get_args(rest_args):
     parser.add_argument('--task_pred_type', type=str, default='task_id', help='choose: task_id, task_description')
     
     # --- CLUSTER TRAINING ---
-    parser.add_argument('--num_prototypes', type=int, default=10, help='the num of the classes: K')
+    parser.add_argument('--num_prototypes', type=int, default=4, help='the num of the classes: K')
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
     parser.add_argument('--sinkhorn_iterations', type=int, default=20, help='')
     parser.add_argument('--cluster_loss_coeff', type=float, default=100, help='cluster loss')
+    parser.add_argument('--unfreeze_proto_interval', type=int, default=[0, 10000000], help='cluster loss')
 
 
     # --- ABLATIONS ---

@@ -46,7 +46,7 @@ class MobileRobotGoal(gym.Env):
 
         self.goal_direction = None
 
-        self.num_cls = 4
+        self.num_cls = 12
         self.task_cls = None
         self.reset_task()
 
@@ -127,7 +127,7 @@ class MobileRobotGoal(gym.Env):
         done = False
         return done
 
-    def render(self, mode: str = "human", n_window: int = 1):
+    def render(self, mode: str = "human", n_window: int = 1, save=True):
 
         if not hasattr(self, "artists"):
             self.render_init(n_window)
@@ -145,8 +145,10 @@ class MobileRobotGoal(gym.Env):
                 circles, arrows, texts = self.artists[idx]
                 circles[0].center = state[idx, :2]
                 arrows[0].set_data(arrow_pos(state[idx, :5]))
-                texts[0].set_text('r_t:{}, r_a:{}'.format(self.info['r_tracking'], self.info['r_action']))
+                # texts[0].set_text('r_t:{}, r_a:{}'.format(self.info['r_tracking'], self.info['r_action']))
             plt.pause(0.025)
+            if save:
+                plt.savefig('./test_results/{}.jpg'.format(self.steps), dpi=300) 
 
     def render_init(self, n_window: int = 1):
 
@@ -166,9 +168,10 @@ class MobileRobotGoal(gym.Env):
                 ax.set_ylim(-10, 10)
 
                 # plot the direction of the robot
-                x = np.linspace(0, 6, 1000)
-                y = np.tan(self.goal_direction) * x
-                ax.plot(x, y, color="black", linestyle='dashed')
+                # x = np.linspace(0, 6, 1000)
+                # y = np.tan(self.goal_direction) * x
+                # ax.plot(x, y, color="black", linestyle='dashed')
+                ax.scatter(self.goal_pos[0], self.goal_pos[1], color='red')
                 circles = []
                 arrows = []
                 texts = []
@@ -201,14 +204,15 @@ class MobileRobotGoal(gym.Env):
             self.goal_pos = task
     
     def sample_task_per_cls(self, task_cls):
-        if task_cls == 0:
-            a = random.uniform(1/16, 3/16) * 2 * np.pi
-        elif task_cls == 1:
-            a = random.uniform(5/16, 7/16) * 2 * np.pi
-        elif task_cls == 2:
-            a = random.uniform(9/16, 11/16) * 2 * np.pi
-        else:
-            a = random.uniform(13/16, 15/16) * 2 * np.pi 
+        a = task_cls * np.pi * 2 / self.num_cls + random.uniform(-np.pi * 0.25 / self.num_cls, np.pi * 0.25 / self.num_cls)
+        # if task_cls == 0:
+        #     a = random.uniform(1/16, 3/16) * 2 * np.pi
+        # elif task_cls == 1:
+        #     a = random.uniform(5/16, 7/16) * 2 * np.pi
+        # elif task_cls == 2:
+        #     a = random.uniform(9/16, 11/16) * 2 * np.pi
+        # else:
+        #     a = random.uniform(13/16, 15/16) * 2 * np.pi 
         return a
     
     def get_task_cls(self):
@@ -220,15 +224,15 @@ class MobileRobotGoal(gym.Env):
             task = task[0]
         self.goal_pos = task
         
-    def get_task_cls(self, task):
-        if task > 1/16 * 2 * np.pi and task < 3/16 * 2 * np.pi:
-            self.task_cls = 0
-        elif task > 5/16 * 2 * np.pi and task < 7/16 * 2 * np.pi:
-            self.task_cls = 1
-        elif task > 9/16 * 2 * np.pi and task < 11/16 * 2 * np.pi:
-            self.task_cls = 2
-        else:
-            self.task_cls = 3
+    # def get_task_cls(self, task):
+    #     if task > 1/16 * 2 * np.pi and task < 3/16 * 2 * np.pi:
+    #         self.task_cls = 0
+    #     elif task > 5/16 * 2 * np.pi and task < 7/16 * 2 * np.pi:
+    #         self.task_cls = 1
+    #     elif task > 9/16 * 2 * np.pi and task < 11/16 * 2 * np.pi:
+    #         self.task_cls = 2
+    #     else:
+    #         self.task_cls = 3
 
     def get_task(self):
         return self.goal_pos

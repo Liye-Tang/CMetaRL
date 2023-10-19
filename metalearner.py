@@ -193,7 +193,7 @@ class MetaLearner:
             self.policy_storage.latent_samples.append(latent_sample.clone())
             self.policy_storage.latent_mean.append(latent_mean.clone())
             self.policy_storage.latent_logvar.append(latent_logvar.clone())
-            if not self.args.disable_cluster:
+            if self.args.pass_latent_cls_to_policy:
                 self.policy_storage.latent_cls_probs.append(latent_cls_prob.clone())
 
             # rollout policies for a few steps
@@ -317,7 +317,7 @@ class MetaLearner:
         self.envs.close()
 
     def cal_the_latent_cls(self, latent):
-        if not self.args.disable_cluster:             
+        if self.args.pass_latent_cls_to_policy:             
             latent_cls_prob = self.vae.cal_policy_prob(latent).to(device)         
         else:             
             latent_cls_prob = None
@@ -383,13 +383,14 @@ class MetaLearner:
                 policy_storage=self.policy_storage,
                 encoder=self.vae.encoder,
                 rlloss_through_encoder=self.args.rlloss_through_encoder,
-                compute_vae_loss=self.vae.compute_vae_loss)
+                compute_vae_loss=self.vae.compute_vae_loss,
+                iter_idx=self.iter_idx)
         else:
             policy_train_stats = 0, 0, 0, 0
 
             # pre-train the VAE
             if self.iter_idx < self.args.pretrain_len:
-                self.vae.compute_vae_loss(update=True)
+                self.vae.compute_vae_loss(update=True, iter_idx=self.iter_idx)
 
         return policy_train_stats
 

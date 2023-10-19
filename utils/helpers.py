@@ -152,11 +152,19 @@ def update_encoding(encoder, next_obs, action, reward, done, hidden_state):
 
 
 def cal_policy_prob(args, proto_proj, latent):
-    latent = latent.reshape(-1, args.latent_dim)         
-    embedding = F.normalize(latent, dim=-1, p=2)         
-    scores =proto_proj(embedding)         
-    latent_cls_prob = F.softmax(scores / args.temperature, dim=-1)  
-    return latent_cls_prob
+    if args.is_cls_prob:
+        latent = latent.reshape(-1, args.latent_dim)         
+        embedding = F.normalize(latent, dim=-1, p=2)         
+        scores =proto_proj(embedding)         
+        latent_cls_prob = F.softmax(scores / args.temperature, dim=-1)  
+        return latent_cls_prob
+    else:
+        latent = latent.reshape(-1, args.latent_dim)              
+        embedding = F.normalize(latent, dim=-1, p=2)              
+        scores =proto_proj(embedding)
+        latent_cls_prob = F.softmax(scores / args.temperature, dim=-1)
+        latent_cls_one_hot = ((latent_cls_prob - torch.max(latent_cls_prob, dim=-1, keepdim=True)[0]) == 0).float()
+        return latent_cls_one_hot
 
 
 def seed(seed, deterministic_execution=False):

@@ -59,6 +59,7 @@ class PPO:
                encoder=None,  # variBAD encoder
                rlloss_through_encoder=False,  # whether or not to backprop RL loss through encoder
                compute_vae_loss=None,  # function that can compute the VAE loss
+               iter_idx=None,
                ):
 
         # -- get action values --
@@ -175,7 +176,7 @@ class PPO:
 
         if (not rlloss_through_encoder) and (self.optimiser_vae is not None):
             for _ in range(self.args.num_vae_updates):
-                compute_vae_loss(update=True)
+                compute_vae_loss(update=True, iter_idx=iter_idx)
     
 
         if self.lr_scheduler_policy is not None:
