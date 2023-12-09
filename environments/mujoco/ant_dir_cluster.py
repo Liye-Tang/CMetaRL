@@ -12,7 +12,7 @@ class AntDirClusterEnv(AntEnv):
 
     def __init__(self, max_episode_steps=200):
         self.seed()
-        self.num_cls = 16
+        self.num_cls = 12
         self.set_task(self.sample_tasks(1)[0])
         self._max_episode_steps = max_episode_steps
         self.task_dim = 1

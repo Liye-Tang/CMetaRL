@@ -147,7 +147,7 @@ def get_args(rest_args):
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
     parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=1000, help='num_traj for the cluster')
-    parser.add_argument('--sinkhorn_iterations', type=int, default=10, help='')
+    parser.add_argument('--sinkhorn_iterations', type=int, default=40, help='')
     parser.add_argument('--cluster_loss_coeff', type=float, default=300, help='cluster loss')
     parser.add_argument('--unfreeze_proto_interval', type=int, default=[100, 10000000], help='cluster loss')
 

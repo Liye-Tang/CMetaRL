@@ -55,7 +55,16 @@ class TestPolicy():
                             tasks=None, add_done_info=None
                             )()
         self.args = args
-        # self.iter = ''  #TODO: only for test
+        # self.iter = ''  # TODO: only for test
+        
+        if self.args.disable_cluster and not self.args.disable_kl_term:
+            self.res_dir = './test_results/variabd/{}'.format(self.load_path[-14:])
+        elif self.args.disable_cluster and self.args.disable_kl_term:
+            self.res_dir = './test_results/none/{}'.format(self.load_path[-14:])
+        elif not self.args.disable_cluster and self.args.disable_kl_term:
+            self.res_dir = './test_results/cluster/{}'.format(self.load_path[-14:])
+        
+        os.makedirs(self.res_dir, exist_ok=True)
         
         if device == "cpu":
             self.policy = torch.load(os.path.join(self.load_path, 'models/policy{}.pt'.format(self.iter)))
@@ -91,12 +100,26 @@ class TestPolicy():
         context_cls_list = [self.cal_context_cls(context) for context in context_list]
         return context_cls_list
     
-    def run_an_episode(self, num_steps, render=False, task=None, episode_ID=1):
+    def run_an_episode(self, num_steps, render=False, task=None, episode_ID=1, plot=False):
         context_list = []
-        TAR = 0
+        
+        # save the key states and actions
+        tar = np.zeros(num_steps+1)
+        delta_v = np.zeros(num_steps)
+        delta_w = np.zeros(num_steps)
+        
+        delta_phi = np.zeros(num_steps)
+        delta_pos = np.zeros(num_steps)
+        
+        latent_cls = np.zeros(num_steps)
+        
+        # reset the environment
         state = self.env.reset(task=task)
+        self.env.render_init(1)
+        target_pos = self.env.goal_pos
+        
         state = torch.from_numpy(state).float().to(device).unsqueeze(0)
-
+        
         if self.encoder is not None:
             # reset latent state to prior
             latent_sample, latent_mean, latent_logvar, hidden_state = self.encoder.prior(1)
@@ -109,8 +132,10 @@ class TestPolicy():
             embedding = F.normalize(latent_mean, dim=-1, p=2)
             scores = self.proto_proj(embedding)
             latent_cls_prob = F.softmax(scores / self.args.temperature, dim=-1).squeeze(0)
-            
+        
+        # run the episode and save the results
         for step_idx in range(num_steps):
+            # singe cycle
             with torch.no_grad():
                 _, action = utl.select_action(args=self.args,
                                               policy=self.policy,
@@ -122,15 +147,14 @@ class TestPolicy():
                                               latent_logvar=latent_logvar,
                                               latent_cls_prob=latent_cls_prob,
                                               deterministic=True)
-                # print(action)
-                # action = torch.tensor([[0.1, 0.1]])
-
+            
             state, rew_raw, done, info = self.env.step(action.cpu().numpy()[0])
-            state = state + np.concatenate((np.random.random(5) * 0.1, np.array([0])))
-            TAR += rew_raw
-            # print(state[2])
+            # state = state + np.concatenate((np.random.random(5) * 0.1, np.array([0])))
+            
             if render:
-                self.env.render()
+                self.env.render(path=self.res_dir)
+                if step_idx == 199:
+                    print('ok')
             
             state = torch.from_numpy(state).float().to(device).unsqueeze(0)
             rew_raw = torch.from_numpy(np.array([rew_raw])).float().to(device).unsqueeze(0)
@@ -144,16 +168,74 @@ class TestPolicy():
                                                                                                 hidden_state=hidden_state)
                 latent_sample, latent_mean, latent_logvar, hidden_state = latent_sample.unsqueeze(0), latent_mean.unsqueeze(0), latent_logvar.unsqueeze(0), hidden_state.unsqueeze(0)
             
-            if step_idx > 100:
-                context_list.append(latent_mean[0, 0].numpy())
+            # save the key info
+            tar[step_idx+1] = tar[step_idx] + rew_raw[0]
+            delta_v[step_idx] = action.cpu().numpy()[0][0]
+            delta_w[step_idx] = action.cpu().numpy()[0][1]
+            
+            delta_phi[step_idx] = dot_product_angle(state[0][:2], target_pos)
+            delta_pos[step_idx] = np.sum(np.square(state.numpy()[0][:2] - target_pos))
+            
+            if not self.args.disable_cluster:
+                latent_cls[step_idx] = self.get_context_cls_list([latent_mean.numpy()])[0]
+            
             if done:
                 break
-        # print(TAR)
-        # with imageio.get_writer(uri='./test_results/test{}_n.gif'.format(episode_ID), mode='I', fps=10) as writer:
-        #     for i in range(200):
-        #         writer.append_data(imageio.imread('./test_results/{}.jpg'.format(i)))
-        #         os.remove('./test_results/{}.jpg'.format(i))
-        return context_list, TAR
+        if plot:
+            # plot the key figures
+            t = np.arange(num_steps)
+            # plt.figure(figsize=(16, 8))
+            ax = plt.gca()
+            # x_major_locator = plt.MultipleLocator(1)
+            # y_major_locator = plt.MultipleLocator(10)
+            # ax.xaxis.set_major_locator(x_major_locator)
+            # ax.yaxis.set_major_locator(y_major_locator)
+
+            plt.figure()
+            plt.minorticks_on()
+            plt.plot(t, tar[1:])
+            plt.text(10, 10, "{}".format(tar[-1]))
+            plt.title('tar')
+            plt.savefig('{}/tar{}.jpg'.format(self.res_dir, episode_ID), dpi=300) 
+            
+            plt.figure()
+            plt.minorticks_on()
+            plt.plot(t, delta_v)
+            plt.title('delta_v')
+            plt.savefig('{}/delta_v{}.jpg'.format(self.res_dir, episode_ID), dpi=300) 
+
+            plt.figure()
+            plt.minorticks_on()
+            plt.plot(t, delta_w)
+            plt.title('delta_w')
+            plt.savefig('{}/delta_w{}.jpg'.format(self.res_dir, episode_ID), dpi=300) 
+
+            plt.figure()
+            plt.minorticks_on()
+            plt.plot(t, delta_phi)
+            plt.title('delta_phi')
+            plt.savefig('{}/delta_phi{}.jpg'.format(self.res_dir, episode_ID), dpi=300) 
+            
+            plt.figure()
+            plt.minorticks_on()
+            plt.plot(t, delta_pos)
+            plt.title('delta_pos')
+            plt.savefig('{}/delta_pos{}.jpg'.format(self.res_dir, episode_ID), dpi=300) 
+            
+            
+            plt.figure()
+            plt.minorticks_on()
+            plt.plot(t, latent_cls)
+            plt.title('latent_cls')
+            plt.savefig('{}/latent_cls{}.jpg'.format(self.res_dir, episode_ID), dpi=300) 
+            
+            # get the video
+            with imageio.get_writer(uri='{}/test{}.gif'.format(self.res_dir, episode_ID), mode='I', fps=10) as writer:
+                for i in range(200):
+                    writer.append_data(imageio.imread('{}/{}.jpg'.format(self.res_dir, i)))
+                    os.remove('{}/{}.jpg'.format(self.res_dir, i))
+
+        return context_list, 0
 
     def run_n_episode(self, n):
         for i in range(n):
@@ -203,39 +285,50 @@ class TestPolicy():
         plt.figure()
         plt.scatter(X_embedded[: ,0], X_embedded[:, 1], color=total_task_color_list)
         plt.savefig('test2.jpg')
+
+
+def dot_product_angle(v1, v2):
+    if np.linalg.norm(v1) == 0 or np.linalg.norm(v2) == 0:
+        print("Zero magnitude vector!")
+    else:
+        vector_dot_product = np.dot(v1, v2)
+        arccos = np.arccos(vector_dot_product / (np.linalg.norm(v1) * np.linalg.norm(v2)))
+        angle = np.degrees(arccos)
+        return angle
+    return 0
         
 def main():
     # the policy and configuration path
-    load_path = "logs/logs_MobileGoalClusterEnv-v0/cluster_173__07:10_12:24:31"
     iter = 29999
+    # load the three tests
+    load_path = "logs/logs_MobileGoalClusterEnv-v0/cluster_173__24:10_19:25:51"
+    cluster_test = TestPolicy(load_path, iter)
+    
+    load_path = 'logs/logs_MobileGoalClusterEnv-v0/cluster_173__07:10_12:23:49'
+    none_test = TestPolicy(load_path, iter)
+    
+    load_path = 'logs/logs_MobileGoalClusterEnv-v0/cluster_173__07:10_12:22:59'
+    varibad_test = TestPolicy(load_path, iter)
 
+    r = 8
+    a_list = [np.pi / 6 * i for i in range(12)]
+    goal_pos_list = [np.stack((r * np.cos(a), r * np.sin(a)), axis=-1) for a in a_list]
+
+    for i, goal_pos in enumerate(goal_pos_list):
+        # if i == 5:
+        cluster_test.run_an_episode(num_steps=200, task=np.expand_dims(goal_pos, axis=0), episode_ID=i, render=True, plot=True)
+        # none_test.run_an_episode(num_steps=200, task=np.expand_dims(goal_pos, axis=0), episode_ID=i)
+        # varibad_test.run_an_episode(num_steps=200, task=np.expand_dims(goal_pos, axis=0), episode_ID=i)
+
+
+def plot_cls():
+    # the policy and configuration path
+    iter = 29999
+    # load the three tests
+    load_path = "logs/logs_MobileGoalClusterEnv-v0/cluster_173__07:10_12:24:31"
     test = TestPolicy(load_path, iter)
-    
-    # test.run_an_episode(num_steps=200, episode_ID=i)
-    # tar_list = []
-    # for i in range(1):
-    #     _, tar = test.run_an_episode(200)
-    #     tar_list.append(tar)
-    # mean_tar = np.mean(tar_list)
-    # print(mean_tar)
+    test.visualize_context()
 
-    
-    # load_path = 'logs\cluster_73_1609_001007'     
-    # iter = 29999
-    # test = TestPolicy(load_path, iter)     
-    # tar_list = []
-    # for i in range(10):
-    #     _, tar = test.run_an_episode(200)
-    #     tar_list.append(tar)
-    # mean_tar = np.mean(tar_list)
-    # print(mean_tar)
-    # # print(latent_sample, latent_mean, latent_logvar, hidden_state)
-    # latent_sample, latent_mean, latent_logvar, hidden_state = test.encoder.prior(1)     
-    # print(latent_mean)
-    # test.run_an_episode(num_steps=200)
-    test.visualize_context(num_tasks=100)
-    # print(action)
 
 if __name__ == "__main__":
-    for i in range(10):
-        main()
+    main()

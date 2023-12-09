@@ -4,7 +4,7 @@ Takes a flag --env-type (see below for choices) and loads the parameters from th
 """
 import utils.gol as gol
 gol._init()
-gol.set_value('device', 'cuda:0')
+gol.set_value('device', 'cuda:1')
 import argparse
 import warnings
 
@@ -19,13 +19,14 @@ from config.pointrobot import \
 from config.mujoco import \
     args_cheetah_dir_multitask, args_cheetah_dir_expert, args_cheetah_dir_rl2, args_cheetah_dir_varibad, \
     args_cheetah_vel_multitask, args_cheetah_vel_expert, args_cheetah_vel_rl2, args_cheetah_vel_varibad, \
-    args_cheetah_vel_avg, args_cheetah_vel_cluster, args_cheetah_dir_cluster, \
+    args_cheetah_vel_avg, args_cheetah_vel_cluster, args_cheetah_dir_cluster, args_ant_dir_none,\
     args_ant_dir_multitask, args_ant_dir_expert, args_ant_dir_rl2, args_ant_dir_varibad, args_ant_dir_cluster, \
     args_ant_goal_multitask, args_ant_goal_expert, args_ant_goal_rl2, args_ant_goal_varibad, \
-    args_ant_goal_humplik, args_ant_goal_cluster, args_walker_cluster, \
+    args_ant_goal_humplik, args_ant_goal_cluster, args_walker_cluster, args_ant_goal_none,\
     args_walker_multitask, args_walker_expert, args_walker_avg, args_walker_rl2, args_walker_varibad, \
     args_humanoid_dir_varibad, args_humanoid_dir_rl2, args_humanoid_dir_multitask, args_humanoid_dir_expert
-from config.vehicle import args_veh_varibad, args_param_varibad, args_mobile_cluster, args_mobile_goal_cluster
+from config.vehicle import args_veh_varibad, args_param_varibad, args_mobile_cluster, args_mobile_goal_cluster, \
+    args_mobile_goal_varibad, args_mobile_goal_none
 from config.metaworld import args_ml45_varibad, args_ml45_cluster, args_ml10_varibad, args_ml10_cluster, args_ml1_varibad, args_ml1_cluster
 from environments.parallel_envs import make_vec_envs
 from learner import Learner
@@ -98,6 +99,8 @@ def main():
         args = args_ant_dir_rl2.get_args(rest_args)
     elif env == 'ant_dir_cluster':
         args = args_ant_dir_cluster.get_args(rest_args)
+    elif env == 'ant_dir_none':
+        args = args_ant_dir_none.get_args(rest_args)
     #
     # - AntGoal -
     elif env == 'ant_goal_multitask':
@@ -112,6 +115,8 @@ def main():
         args = args_ant_goal_rl2.get_args(rest_args)
     elif env == 'ant_goal_cluster':
         args = args_ant_goal_cluster.get_args(rest_args)
+    elif env == 'ant_goal_none':
+        args = args_ant_goal_none.get_args(rest_args)
     #
     # - Walker -
     elif env == 'walker_multitask':
@@ -146,6 +151,11 @@ def main():
         args = args_mobile_cluster.get_args(rest_args)
     elif env == 'mobile_goal_cluster':
         args = args_mobile_goal_cluster.get_args(rest_args)
+    elif env == 'mobile_goal_none':
+        args = args_mobile_goal_none.get_args(rest_args)
+    elif env == 'mobile_goal_varibad':
+        args = args_mobile_goal_varibad.get_args(rest_args)
+        
         
     # --- Metaworld ---
     elif env == 'ml1_varibad':

@@ -38,7 +38,7 @@ def get_args(rest_args):
     parser.add_argument('--norm_actions_post_sampling', type=boolean_argument, default=False, help='normalise policy output')
 
     # network
-    parser.add_argument('--policy_layers', nargs='+', default=[256, 256, 256])
+    parser.add_argument('--policy_layers', nargs='+', default=[128, 128])
     parser.add_argument('--policy_activation_function', type=str, default='tanh', help='tanh/relu/leaky-relu')
     parser.add_argument('--policy_initialisation', type=str, default='orthogonal', help='normc/orthogonal')
     parser.add_argument('--policy_anneal_lr', type=boolean_argument, default=True, help='anneal LR over time')
@@ -142,13 +142,13 @@ def get_args(rest_args):
     parser.add_argument('--task_pred_type', type=str, default='task_id', help='choose: task_id, task_description')
     
     # --- CLUSTER TRAINING ---
-    parser.add_argument('--num_prototypes', type=int, default=12, help='the num of the classes: K')
+    parser.add_argument('--num_prototypes', type=int, default=16, help='the num of the classes: K')
     parser.add_argument('--temperature', type=float, default=0.1, help='weight for task loss')
     parser.add_argument('--proto_max_grad_norm', nargs='+', type=float, default=100)
-    parser.add_argument('--epsilon', type=float, default=0.05, help='the sinkhorn param')
+    parser.add_argument('--epsilon', type=float, default=0.02, help='the sinkhorn param')
     parser.add_argument('--cluster_batch_num_trajs', type=int, default=500, help='num_traj for the cluster')
-    parser.add_argument('--sinkhorn_iterations', type=int, default=10, help='')
-    parser.add_argument('--cluster_loss_coeff', type=float, default=10000, help='cluster loss')
+    parser.add_argument('--sinkhorn_iterations', type=int, default=20, help='')
+    parser.add_argument('--cluster_loss_coeff', type=float, default=100, help='cluster loss')
     parser.add_argument('--unfreeze_proto_interval', type=int, default=[200, 100000000], help='when to unfreeze proto')
 
     # --- ABLATIONS ---

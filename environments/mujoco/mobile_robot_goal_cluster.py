@@ -64,7 +64,7 @@ class MobileRobotGoal(gym.Env):
         state = np.zeros([n_agent, self.state_dim])
         
         #state[:, 0] = uniform(0.75, 1.25)  # x坐标
-        state[:, 0] = 0  # x坐标
+        # state[:, 0] = 0  # x坐标
         state[:, 0] = random.uniform(-0.2, 0.2)
         #state[:, 1] = uniform(-0.7, -0.3)  # y坐标
         # state[:, 1] = 0  # y坐标
@@ -72,7 +72,7 @@ class MobileRobotGoal(gym.Env):
         # state[:, 2] = 0  # 朝向
         state[:, 2] = random.uniform(-np.pi / 8, np.pi / 8)  # 朝向
         state[:, 3] = 0  # 速度
-        #state[:, 4] = uniform(-np.pi/18,np.pi/18)  # 角速度
+        # state[:, 4] = uniform(-np.pi/18,np.pi/18)  # 角速度
         state[:, 4] = 0  # 角速度
 
         # 重置状态变量
@@ -127,7 +127,7 @@ class MobileRobotGoal(gym.Env):
         done = False
         return done
 
-    def render(self, mode: str = "human", n_window: int = 1, save=True):
+    def render(self, mode: str = "human", n_window: int = 1, save=True, path=None):
 
         if not hasattr(self, "artists"):
             self.render_init(n_window)
@@ -148,10 +148,9 @@ class MobileRobotGoal(gym.Env):
                 # texts[0].set_text('r_t:{}, r_a:{}'.format(self.info['r_tracking'], self.info['r_action']))
             plt.pause(0.025)
             if save:
-                plt.savefig('./test_results/{}.jpg'.format(self.steps), dpi=300) 
+                plt.savefig('{}/{}.jpg'.format(path, self.steps), dpi=300) 
 
     def render_init(self, n_window: int = 1):
-
         fig, axs = plt.subplots(n_window, n_window, figsize=(9, 9))
         artists = []
 
@@ -219,7 +218,7 @@ class MobileRobotGoal(gym.Env):
         return self.task_cls
 
     def set_task(self, task):
-        self.get_task_cls(task)
+        # self.get_task_cls(task)
         if isinstance(task, np.ndarray):
             task = task[0]
         self.goal_pos = task
@@ -302,14 +301,24 @@ class Robot:
         return np.stack(next_state, 1)
 
 
+def deal_with_phi(phi):
+    while not (phi > -np.pi and phi < np.pi):
+        if phi > np.pi:
+            phi -= 2 * np.pi
+        if phi < -np.pi:
+            phi += 2 * np.pi
+
+    return phi
+
 def main():
     env = MobileRobotGoal()
     state = env.reset()
-
+    print(state[2])
     for i in range(200):
         action = env.action_space.sample()
         next_state, reward, done, info = env.step(action)
-        env.render()
+        print(next_state[2])
+        # env.render()
     
 
 if __name__ == '__main__':
